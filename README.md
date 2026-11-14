@@ -1,5 +1,7 @@
 # Nitro System for FH2
 
+English | [中文](README.ZH.md)
+
 Fast & Furious style **NOS** for **Forza Horizon 2** (Xbox One build on PC via the Azimuth launcher), built on the **FH2 Mod Platform**.
 
 Buy a **NOS Kit** for your car in the garage, then hold **LB** (or any button you pick) to burn NOS: your car gets a strong push, blue flames shoot from your tailpipes, the speedometer gets a draining NOS gauge with a glowing tip, the screen edges glow blue with speed lines flying past, the NOS roars, the camera shakes and the controller rumbles.
