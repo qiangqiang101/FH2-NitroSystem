@@ -447,6 +447,11 @@ static const char *nu_publish(char *buf) {
 
 enum { NU_K_VIEW, NU_K_UPDATE, NU_K_LIST, NU_K_OTHER };
 
+/* Cars the kit isn't offered to, by car ordinal (the game's car id): set by the includer (its DisabledCars), may be
+   NULL. Their upgrade list is left as the game made it, so the NOS Kit isn't in it. */
+static int (*nu_car_excluded)(long ordinal);
+static volatile LONG nu_excluded_logged;
+
 /* Returns the statement to run: `sql` itself, or a rewritten copy. */
 static const char *nu_rewrite(const char *sql, size_t len) {
     if (len < 24) return sql;
@@ -459,6 +464,12 @@ static const char *nu_rewrite(const char *sql, size_t len) {
             buf[b.at] = 0;
             if (nu_cur_ord != (LONG)ord) nu_garage_dirty = 1;   /* another car: read the driven car's garage id again soon */
             nu_cur_ord = (LONG)ord;
+            if (nu_car_excluded && nu_car_excluded(ord)) {       /* no NOS in this car (DisabledCars): no kit for sale */
+                if (InterlockedExchange(&nu_excluded_logged, (LONG)ord) != (LONG)ord)
+                    nu_say_num("no NOS Kit in the garage for car ordinal (DisabledCars) ", ord);
+                nu_drop(buf);
+                return sql;
+            }
             if (nu_first_few(NU_K_VIEW, 3)) nu_say_num("upgrade list built for car ordinal ", ord);
             return nu_publish(buf);
         }
@@ -526,21 +537,35 @@ static void *nu_query_hook(void *self, void **out, const char *sql) {
 typedef const uint16_t *(*NuLocLookup)(void *, unsigned, unsigned);
 static NuLocLookup nu_real_lookup;
 #define NU_TEXT_WCHARS 256
-static uint16_t nu_texts[NU_KEY_LAST - NU_KEY_FIRST + 1][NU_TEXT_WCHARS];
+/* Two banks: a new language's texts are written into the bank the game isn't reading, then that one is switched
+   to, so a lookup never sees half a text. (A text the game still holds from two languages ago may change under it;
+   it copies what it shows, and the language rarely changes.) */
+static uint16_t nu_texts[2][NU_KEY_LAST - NU_KEY_FIRST + 1][NU_TEXT_WCHARS];
+static volatile LONG nu_text_bank;
+static SRWLOCK nu_texts_lock = SRWLOCK_INIT;
 static void nu_build_texts(void) {
     char tmp[NU_TEXT_MAX];
+    AcquireSRWLockExclusive(&nu_texts_lock);
+    const LONG bank = nu_text_bank ^ 1;
     for (unsigned k = NU_KEY_FIRST; k <= NU_KEY_LAST; k++) {
         const char *t = nu_key_text(k, tmp, &nu_cfg);
-        uint16_t *o = nu_texts[k - NU_KEY_FIRST];
+        uint16_t *o = nu_texts[bank][k - NU_KEY_FIRST];
         int n = t && t[0] ? MultiByteToWideChar(CP_UTF8, 0, t, -1, (wchar_t *)o, NU_TEXT_WCHARS) : 0;   /* UTF-8 -> UTF-16 */
         if (n <= 0) n = 1;
         o[n - 1] = 0;
     }
+    InterlockedExchange(&nu_text_bank, bank);
+    ReleaseSRWLockExclusive(&nu_texts_lock);
 }
+/* The texts again, in the language now (the game picks its language after the mod starts, and can change it). */
+static void nu_rebuild_texts(void) { if (nu_mod) nu_build_texts(); }
 static const uint16_t *nu_lookup_hook(void *mgr, unsigned table, unsigned key) {
     const uint16_t *r = nu_real_lookup ? nu_real_lookup(mgr, table, key) : NULL;
     unsigned k = key & 0xFFFFu;
-    if (k >= NU_KEY_FIRST && k <= NU_KEY_LAST && nu_texts[k - NU_KEY_FIRST][0] && (!r || !r[0])) return nu_texts[k - NU_KEY_FIRST];
+    if (k >= NU_KEY_FIRST && k <= NU_KEY_LAST) {
+        const uint16_t *ours = nu_texts[nu_text_bank & 1][k - NU_KEY_FIRST];
+        if (ours[0] && (!r || !r[0])) return ours;
+    }
     return r;
 }
 
@@ -601,7 +626,7 @@ static void nu_install_icons(const FH2ModApi *api, FH2Mod *mod) {
 
 static int nu_init(const FH2ModApi *api, FH2Mod *mod, const wchar_t *ini) {
     nu_api = api; nu_mod = mod;
-    if (!api || api->api_version < 3 || api->size < sizeof(FH2ModApi) || !api->hook_function || !api->enable_hooks || !api->wait_for_code || !api->add_sql) return 0;
+    if (!api || api->api_version < 3 || api->size < offsetof(FH2ModApi, add_sql) + sizeof(api->add_sql) || !api->hook_function || !api->enable_hooks || !api->wait_for_code || !api->add_sql) return 0;
     nu_load_config(ini);
     nu_load_cars();
     nu_install_icons(api, mod);

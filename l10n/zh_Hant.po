@@ -1,0 +1,228 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: NitroSystem\n"
+"Language: zh_Hant\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgctxt "mod.description"
+msgid "Fast & Furious NOS for every car in Forza Horizon 2, with exhaust flames, sound and a NOS gauge. Hold the NOS Button (LB unless you change it) to boost."
+msgstr "為 Forza Horizon 2 的所有車輛加入 Fast & Furious NOS，附排氣噴火、音效與 NOS 計量表。按住 NOS 按鈕 (預設為 LB) 即可加速。"
+
+msgctxt "row.NitroEnabled.label"
+msgid "Nitro System ({button})"
+msgstr "NOS 系統 ({button})"
+
+msgctxt "row.NitroEnabled.description"
+msgid "Turns the Fast & Furious NOS on or off. Hold the NOS Button while driving to boost."
+msgstr "開啟或關閉 Fast & Furious NOS。駕駛時按住 NOS 按鈕即可加速。"
+
+msgctxt "row.DebugOverlay.label"
+msgid "NOS Debug Overlay"
+msgstr "NOS 除錯資訊"
+
+msgctxt "row.DebugOverlay.description"
+msgid "Draws NOS and flame debug info over the game (needs borderless/windowed mode)."
+msgstr "在遊戲畫面上顯示 NOS 與噴火的除錯資訊 (需要視窗或無邊界視窗模式)。"
+
+msgctxt "row.BackfireOnAllCars.label"
+msgid "Backfire on All Cars"
+msgstr "所有車輛回火"
+
+msgctxt "row.BackfireOnAllCars.description"
+msgid "Lets every car backfire, which the NOS exhaust flames need. Off leaves the game's own backfire settings alone. Takes effect after a restart."
+msgstr "讓所有車輛都能回火，這是 NOS 排氣噴火所需要的。關閉時保留遊戲本身的設定。重新啟動後生效。"
+
+msgctxt "row.RefillOnRaceStart.label"
+msgid "Refill NOS on Race Start"
+msgstr "比賽開始時補滿 NOS"
+
+msgctxt "row.RefillOnRaceStart.description"
+msgid "Fills the NOS tank when a race starts, you quit one, you change car or you fast travel."
+msgstr "比賽開始、退出比賽、更換車輛或快速移動時，將 NOS 補滿。"
+
+msgctxt "row.RefundOnRewind.label"
+msgid "Refund NOS on Rewind"
+msgstr "倒轉時返還 NOS"
+
+msgctxt "row.RefundOnRewind.description"
+msgid "Rewinding gives back the NOS you used since the point you rewind to."
+msgstr "倒轉時，會返還自倒轉點之後用掉的 NOS。"
+
+msgctxt "row.Rumble.label"
+msgid "NOS Controller Rumble"
+msgstr "NOS 控制器震動"
+
+msgctxt "row.Rumble.description"
+msgid "Rumbles the controller while NOS is active. The game's own rumble isn't affected."
+msgstr "NOS 啟動時讓控制器震動。不影響遊戲本身的震動。"
+
+msgctxt "row.DrivatarNitro.label"
+msgid "Drivatar NOS"
+msgstr "Drivatar NOS"
+
+msgctxt "row.DrivatarNitro.description"
+msgid "Drivatars use NOS too, whenever they can (not before the race starts), from a tank with twice your capacity and recharge, with flames and sound. Not once they're over 100 m ahead of you, so you can catch up. Applies right away."
+msgstr "Drivatar 也會盡可能使用 NOS (比賽開始前除外)，容量與回充速度是你的兩倍，並有噴火與音效。領先你超過 100 公尺時不會使用，讓你能夠追上。立即生效。"
+
+msgctxt "row.RequireNitrousKit.label"
+msgid "Require NOS Kit"
+msgstr "需要 NOS 套件"
+
+msgctxt "row.RequireNitrousKit.description"
+msgid "On: only cars with the NOS Kit (Garage > Upgrades > Custom upgrade > Engine) have NOS, and the stage sets the tank and its recharge. Off: every car has NOS, with the NOS Tank Capacity and NOS Recharge Rate, and the NOS Kit isn't in the garage."
+msgstr "開啟：只有裝了 NOS 套件 (在車庫以引擎升級購買) 的車輛有 NOS，階段決定容量與回充速度。關閉：所有車輛都有 NOS，使用 NOS 容量與 NOS 回充速度，車庫中不會出現 NOS 套件。"
+
+msgctxt "row.HudHide.label"
+msgid "Hide NOS Gauge Without Kit"
+msgstr "無套件時隱藏計量表"
+
+msgctxt "row.HudHide.description"
+msgid "On: the NOS gauge frame is hidden on cars without a NOS Kit. Off: an empty frame stays."
+msgstr "開啟：沒有 NOS 套件的車輛會隱藏 NOS 計量表。關閉：保留空的計量表。"
+
+msgctxt "row.VignetteEnabled.label"
+msgid "NOS Blue Vignette"
+msgstr "NOS 藍色邊緣光"
+
+msgctxt "row.VignetteEnabled.description"
+msgid "A pulsing blue vignette at the screen edges while NOS is active."
+msgstr "NOS 啟動時，畫面邊緣出現閃動的藍光。"
+
+msgctxt "row.SpeedLinesEnabled.label"
+msgid "NOS Speed Lines"
+msgstr "NOS 速度線"
+
+msgctxt "row.SpeedLinesEnabled.description"
+msgid "Thin blue streaks flying out toward the screen edges while NOS is active, in step with the car's speed."
+msgstr "NOS 啟動時，細細的藍色線條向畫面邊緣飛出，速度隨車速變化。"
+
+msgctxt "row.NitroButton.label"
+msgid "NOS Button"
+msgstr "NOS 按鈕"
+
+msgctxt "row.NitroButton.description"
+msgid "Which button burns NOS. Pick one the game doesn't use while driving. Applies right away."
+msgstr "使用 NOS 的按鈕。 請選擇遊戲在駕駛時不使用的按鈕。立即生效。"
+
+msgctxt "row.NitroButton.slider_description"
+msgid "1 LB, 2 RB, 3 A, 4 B, 5 X, 6 Y, 7 LS click, 8 RS click, 9 D-Pad Up, 10 D-Pad Down, 11 D-Pad Left, 12 D-Pad Right, 13 Back, 14 Start, 15 LT, 16 RT. Pick one the game doesn't use while driving. Applies right away."
+msgstr "1 LB, 2 RB, 3 A, 4 B, 5 X, 6 Y, 7 LS click, 8 RS click, 9 D-Pad Up, 10 D-Pad Down, 11 D-Pad Left, 12 D-Pad Right, 13 Back, 14 Start, 15 LT, 16 RT. 請選擇遊戲在駕駛時不使用的按鈕。立即生效。"
+
+msgctxt "row.HudTheme.label"
+msgid "HUD Theme"
+msgstr "抬頭顯示器主題"
+
+msgctxt "row.HudTheme.choice.0"
+msgid "Original"
+msgstr "原始"
+
+msgctxt "row.HudTheme.description"
+msgid "Original: the game's HUD with a yellow NOS bar. Fast & Furious: cyan NOS bar, gears and assist icons."
+msgstr "原始：遊戲本身的抬頭顯示器，NOS 條為黃色。Fast & Furious：NOS 條、檔位與輔助圖示為青色。"
+
+msgctxt "row.HudTheme.slider_description"
+msgid "1 Original (yellow NOS bar), 2 Fast & Furious (cyan NOS bar, gears and assist icons)."
+msgstr "1 原始 (NOS 條為黃色)，2 Fast & Furious (NOS 條、檔位與輔助圖示為青色)。"
+
+msgctxt "row.TorqueScale.label"
+msgid "NOS Boost Multiplier"
+msgstr "NOS 加速倍率"
+
+msgctxt "row.TorqueScale.description"
+msgid "Multiplies forward acceleration while NOS is active (Spire default: 1.6x)."
+msgstr "NOS 啟動時，前進加速度乘以此倍率 (Spire 預設值：1.6 倍)。"
+
+msgctxt "row.Duration.label"
+msgid "NOS Tank Capacity (sec)"
+msgstr "NOS 容量 (秒)"
+
+msgctxt "row.Duration.description"
+msgid "Total seconds of continuous boost available in a full tank (Spire default: 20s). Ignored while Require NOS Kit is on: then the NOS Kit's stage sets the tank."
+msgstr "補滿時可連續加速的秒數 (Spire 預設值：20 秒)。 開啟「需要 NOS 套件」時無效：此時由 NOS 套件階段決定容量。"
+
+msgctxt "row.BuildupTime.label"
+msgid "NOS Buildup Time (sec)"
+msgstr "NOS 啟動時間 (秒)"
+
+msgctxt "row.BuildupTime.description"
+msgid "Time taken to ramp up to full boost torque (Spire default: 0.5s)."
+msgstr "達到最大加速所需的時間 (Spire 預設值：0.5 秒)。"
+
+msgctxt "row.RechargeRate.label"
+msgid "NOS Recharge Rate"
+msgstr "NOS 回充速度"
+
+msgctxt "row.RechargeRate.description"
+msgid "Seconds of NOS restored per second while not boosting. Ignored while Require NOS Kit is on: then the NOS Kit's stage sets the recharge rate."
+msgstr "未加速時，每秒回充的 NOS 秒數。 開啟「需要 NOS 套件」時無效：此時由 NOS 套件階段決定回充速度。"
+
+msgctxt "row.SoundVolume.label"
+msgid "NOS Sound Volume"
+msgstr "NOS 音量"
+
+msgctxt "row.SoundVolume.description"
+msgid "Volume of the boost and stop sounds. The game's own volume sliders don't change them."
+msgstr "加速與停止音效的音量。遊戲本身的音量設定不會改變它們。"
+
+msgctxt "row.DrivatarSoundVolume.label"
+msgid "Drivatar NOS Volume"
+msgstr "Drivatar NOS 音量"
+
+msgctxt "row.DrivatarSoundVolume.description"
+msgid "Volume of the Drivatars' NOS, heard from their cars (with Drivatar NOS on). 0 silences it."
+msgstr "Drivatar NOS 的音量，從他們的車輛發出 (需開啟 Drivatar NOS)。0 為靜音。"
+
+msgctxt "row.CameraShake.label"
+msgid "NOS Camera Shake"
+msgstr "NOS 視角搖動"
+
+msgctxt "row.CameraShake.description"
+msgid "How much the camera shakes while NOS is active, in the driver, hood, bumper and chase views. 0 turns it off."
+msgstr "NOS 啟動時視角搖動的程度，適用於車手、引擎蓋、保險桿與追車視角。0 為關閉。"
+
+msgctxt "row.FovBoost.label"
+msgid "NOS Wider FOV"
+msgstr "NOS 視野加寬"
+
+msgctxt "row.FovBoost.description"
+msgid "How much wider the field of view gets while NOS is active, in the driver, hood, bumper and chase views. 0 turns it off."
+msgstr "NOS 啟動時視野加寬的程度，適用於車手、引擎蓋、保險桿與追車視角。0 為關閉。"
+
+msgctxt "garage.kit.name"
+msgid "NOS Kit"
+msgstr "NOS 套件"
+
+msgctxt "garage.kit.description"
+msgid "NOS injection. Hold the NOS button while driving; a higher stage has a bigger tank that recharges faster."
+msgstr "NOS 噴射系統。駕駛時按住 NOS 按鈕；階段越高，容量越大，回充也越快。"
+
+msgctxt "garage.stock.name"
+msgid "Stock"
+msgstr "原廠"
+
+msgctxt "garage.stage1.name"
+msgid "Stage 1 NOS"
+msgstr "NOS 第 1 階段"
+
+msgctxt "garage.stage2.name"
+msgid "Stage 2 NOS"
+msgstr "NOS 第 2 階段"
+
+msgctxt "garage.stage3.name"
+msgid "Stage 3 NOS"
+msgstr "NOS 第 3 階段"
+
+msgctxt "garage.stage4.name"
+msgid "Stage 4 NOS"
+msgstr "NOS 第 4 階段"
+
+msgctxt "garage.stock.description"
+msgid "No NOS fitted."
+msgstr "未安裝 NOS 系統。"
+
+msgctxt "garage.stage.description"
+msgid "NOS, stage {n}: {s} s tank, recharges {r} s per second."
+msgstr "NOS 第 {n} 階段：容量 {s} 秒，1 秒回充 {r} 秒。"

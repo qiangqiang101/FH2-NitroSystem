@@ -64,7 +64,7 @@ What is in azimuth-windows\:
                            from another mod, keep the newer one: skip this file if yours is newer.
 
 The NOS speedometer gauge, the HUD textures, the blue flame effect and the NOS Kit's icons are inside
-FnFNitro.dll. The platform (2.8.0 or newer) writes them to the game's mediaoverride folder and makes the game
+FnFNitro.dll. The platform (2.9.0 or newer, included) writes them to the game's mediaoverride folder and makes the game
 read it; Forza Horizon 2 Extra Options isn't needed.
 
 Start the game through Azimuth. Buy a NOS Kit for your car (Garage > Upgrades > Custom upgrade > Engine >

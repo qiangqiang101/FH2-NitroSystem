@@ -35,7 +35,7 @@ Buy a **NOS Kit** for your car in the garage, then hold **LB** (or any button yo
 - **NOS gauge on the speedometer.** Both the **analog** and the **digital** speedometers get a four-segment NOS bar that drains as you use NOS, with a glowing tip that follows the leading edge of the fill.
 - **Exhaust flames.** Blue flames come out of your car's real tailpipes while NOS is held, from the first second (the mod drives the game's own backfire effect, at the exhaust positions the car's own model gives).
 - **Sound, rumble and camera shake.** A boost sound that kicks in and then holds for as long as the tank lasts, and a stop sound, both played by the game's own audio from your car (fly a drone away and they fade with distance) (built into the DLL; put your own `nos_boost.wav` and `nos_stop.wav` in an `FnFNitro` folder next to `azimuth.exe` to replace them; your own boost sound loops from its start), a rumble that ramps up with the boost, and a camera shake while it burns. Each has its own setting below.
-- **In-game settings.** Everything below is on **Pause > Settings > MODS**, and the NOS Kit's names in the garage, are in the game's language: Brazilian Portuguese, Dutch, French, German, Italian, Japanese, Korean, Polish, Russian, Spanish (Spain and Mexico) and Traditional Chinese. Czech and Hungarian stay English, as the game's own text does there. The Mods page is built before the game has picked its language, so it uses the one the game had the last time it ran (the very first time, Azimuth's Language setting): after you change the game's language it follows one launch later.
+- **In-game settings.** Everything below is on the mod's page (**Pause > MODS > YOUR MODS > NitroSystem**, or **Pause > Settings > MODS**). It and the NOS Kit's names in the garage are in the game's language: Brazilian Portuguese, Dutch, French, German, Italian, Japanese, Korean, Polish, Russian, Spanish (Spain and Mexico) and Traditional Chinese. Czech and Hungarian stay English, as the game's own text does there. The text follows the game's language as soon as the game has picked it, and when you change it (the translations are the FH2 Mod Platform's, from 2.9.0; see **Translating** below).
 - **Works alongside car mods.** The **Knight Rider** car and other mods that patch the speedometer or the car's kind run alongside it, and cars listed in `DisabledCars` (the Knight Rider car by default) get no NOS and no NOS gauge, so their own mod has the button. With **ANNA Drone Mode** installed, NOS is off while the drone flies. Other mods can switch NOS off too (see **For mod authors** below).
 
 ### In-game settings
@@ -46,7 +46,7 @@ Buy a **NOS Kit** for your car in the garage, then hold **LB** (or any button yo
 | NOS Button | LB, RB, A, B, X, Y, LS Click, RS Click, D-Pad, Back, Start, LT, RT | LB | Which button burns NOS. Applies right away. |
 | NOS Debug Overlay | On / Off | Off | Draws debug info over the game (see below). |
 | HUD Theme | Original / Fast & Furious | Fast & Furious | Original is the Forza Horizon 2 HUD with a yellow NOS bar. Fast & Furious has a cyan NOS bar, cyan gears and cyan ABS / TCS / STM icons. **Needs a game restart.** |
-| Require NOS Kit | On / Off | On | On: only cars with the NOS Kit upgrade have NOS, and the kit's stage sets the tank and its recharge. Off: every car has NOS, with the NOS Tank Capacity and NOS Recharge Rate. Applies right away. |
+| Require NOS Kit | On / Off | On | On: only cars with the NOS Kit upgrade have NOS, and the kit's stage sets the tank and its recharge. Off: every car has NOS, with the NOS Tank Capacity and NOS Recharge Rate, and the NOS Kit isn't in the garage. Which cars have NOS changes right away; the NOS Kit's garage entry comes or goes **after a game restart**. The stage each car had is kept meanwhile. |
 | Hide NOS Gauge Without Kit | On / Off | On | Hides the NOS gauge frame on cars without the kit. Off leaves an empty frame. Applies right away. |
 | NOS Boost Multiplier | 1.0x - 2.0x | 1.6x | Strength of the push, for every kit stage and for Drivatars. |
 | NOS Tank Capacity (sec) | 5 - 60 | 20 | Seconds of NOS in a full tank. Ignored while **Require NOS Kit** is on: then the kit's stage sets the tank. |
@@ -142,7 +142,7 @@ A few notes on the file:
 
   With a platform older than 2.8.0 the Mods page can't show names, so **NOS Button** is a slider with the numbers above and **HUD Theme** is a slider where 1 is Original and 2 is Fast & Furious.
 - `[Upgrade]` sets the NOS Kit: `Price1`..`Price4` in CR, `Tank1`..`Tank4` (seconds of NOS, 1 to 600) and `Recharge1`..`Recharge4` (seconds of NOS restored per second, 0.00 to 5.00) for the four stages, and `Area`, the upgrade area the entry is listed under (1 = Engine). The prices, tanks, recharge rates and names are read at startup, so changes apply the next time the game starts. (`Boost1`..`Boost3` from an earlier version are removed: the push is the NOS Boost Multiplier for every stage.) Which stage each car has is kept in `FnFNitroGarage.json` (above).
-- `DisabledCars` lists cars that get no NOS and no NOS gauge, by the game's car id (`Data_Car.Id`), separated by commas: `3884` is the Knight Rider car, whose own mod uses LB. Leave it empty to let every car have NOS. The platform log shows `Your car: id ...` each time you change car, which is how to find a car's id. There is no Mods page row for it.
+- `DisabledCars` lists cars that get no NOS, no NOS gauge and no NOS Kit in the garage, by the game's car id (`Data_Car.Id`), separated by commas: `3884` is the Knight Rider car, whose own mod uses LB. Leave it empty to let every car have NOS. The platform log shows `Your car: id ...` each time you change car, which is how to find a car's id. There is no Mods page row for it.
 - `BackfireOnAllCars` is the **Backfire on All Cars** row on the Mods page. When it is on, the mod makes every car able to backfire by changing the game database at startup, which the flames depend on. Turn it off to leave the game's own backfire settings alone: flames then only work on cars the game already lets backfire. A change only takes effect the next time the game starts.
 
 ### Debug overlay
@@ -154,7 +154,7 @@ Switch on **NOS Debug Overlay** to draw a small panel in the top-left corner of 
 ## Requirements
 
 - **Azimuth** launcher with Forza Horizon 2.
-- The **FH2 Mod Platform 2.8.0 or newer** (`DWrite.dll` in the Azimuth folder). The other mods you may already have, such as ShowFPS or Achievements, use the same one. The NOS Kit needs 2.8.0: with an older platform it isn't added to the garage, and every car has NOS instead.
+- The **FH2 Mod Platform 2.9.0 or newer** (`DWrite.dll` in the Azimuth folder), which the release zip includes. The other mods you may already have, such as ShowFPS or Achievements, use the same one. On 2.8.0 the mod still works, but its text is English only; older than 2.8.0, the NOS Kit isn't added to the garage and every car has NOS instead.
 - **Forza Horizon 2 Extra Options** is optional. The NOS gauge and HUD textures, the blue flame effect, the upgrade icons and the database changes (the NOS Kit, and "every car can backfire") go to the game's `mediaoverride` folder; platform 2.7.3 and newer makes the game read that folder by itself, and with Extra Options installed it uses Extra Options' (keep its `EnableMediaOverrides` on).
 
 ---
@@ -264,7 +264,6 @@ foreach ($t in $targets) {
 - **Buying a kit is recorded in your save.** Which stage is fitted to each car is kept in the mod's own file, but the purchase goes through the game's own upgrade shop, which records it in your save like any other part (in its list of bought parts, under part type 47). So the game remembers the stages you've bought: switching a car back to a stage it already owns is free, and the price paid gets the game's usual discount. After uninstalling the mod those entries stay in the save, pointing at upgrade rows that are gone with the mod; how the game treats them then hasn't been tested, so back up your saves before uninstalling.
 - **One file per player, picked at startup.** The mod uses the `saves\player-N` folder written last; switching players during a session is only noticed at the next launch.
 - **Stage 4 shows Stage 3's icon.** There's no picture of its own for it yet (`icons\stage4.png`).
-- **Garage names follow the language one launch late,** like the Mods page: they're made at startup, in the game's language of the last session.
 - **`[Upgrade]` changes need a restart.** The stages and their descriptions ("NOS, stage 3: 20 s tank, recharges 0.30 s per second.") are made at startup.
 
 ---
@@ -281,6 +280,26 @@ Everything the mod says goes to `fh2-mods\platform.log` (starts fresh every laun
 - `Failed to ...` or `Could not hook ...`: a hook didn't install, usually because the game build isn't the one this mod was written for.
 
 If there is no NOS gauge or no flames, check that the platform is 2.7.3 or newer (or that **Extra Options** is installed with `EnableMediaOverrides` on), and that `platform.log` has `[NitroSystem] replaces media\...` lines for the HUD files and `Backfire.xml`. If it says the mod couldn't replace a file, another mod is already replacing it. If the gauge is there but empty with no frame, the car you're driving has no NOS Kit (or is in `DisabledCars`).
+
+---
+
+## Translating
+
+The mod's text (its page on the MODS tab and the NOS Kit in the garage) is translated with the FH2 Mod Platform's gettext workflow ([platform/docs/translating.md](platform/docs/translating.md)):
+
+- [`l10n/NitroSystem.pot`](l10n/NitroSystem.pot) lists every text, with its key, where it shows and how long it may be.
+- [`l10n/`](l10n/) has one PO file per language (`de.po`, `pt_BR.po`, `zh_Hant.po`...), built into the DLL as `src/nitro_l10n.inc`.
+- To try a translation in game without a build, put it in `fh2-mods\lang\NitroSystem\<language>.po` (`ru.po`, say) and start the game in that language: the platform uses it instead of the built-in one, and `platform.log` says so, and names any entry it left out.
+
+After changing the English in the code or a PO file:
+
+```sh
+python platform/tools/l10n/extract.py --domain NitroSystem src            # l10n/NitroSystem.pot
+python platform/tools/l10n/po2inc.py src/nitro_l10n.inc nitro_translations l10n/*.po
+python scripts/check_fonts.py "<Mount>/media/ui/Fonts.zip"               # every letter in the game's fonts
+```
+
+A text whose English changed shows in English until its translation is updated, never with the old meaning. Corrections from native speakers are welcome as issues or pull requests: edit the language's PO file (Poedit reads and writes them).
 
 ---
 

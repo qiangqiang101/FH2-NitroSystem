@@ -1,8 +1,16 @@
 #include "fh2mod.h"
-#include "lang.h"
+#include "fh2mod_l10n.h"   // the platform's translations (API 10): FH2_TR
 #include "fh2game.h"
 #include "legacy_files.h"
 #include "../include/NitroSystemControl.h"
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4125)   // po2inc.py writes 3-digit octal escapes; a digit after one is just the next character
+#endif
+#include "nitro_l10n.inc"         // l10n/*.po, built in by platform/tools/l10n/po2inc.py (README.md, "Translating")
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include <windows.h>
 #include <intrin.h>
@@ -49,7 +57,6 @@ static std::atomic<bool> g_hud_hide{true};           // "Hide Nitro Gauge Withou
 static std::atomic<float> g_fov_boost{0.10f};        // extra field of view while nitro burns, 0..0.3 (fraction of the normal FOV)
 static std::atomic<bool>  g_vig_on{true};            // the pulsing blue vignette while nitro burns
 static constexpr float g_vig_opacity = 0.95f;        // its overall opacity (fixed; only the on/off switch is a setting)
-static constexpr float g_vig_intensity = 0.90f;      // how far in and how strongly the glow builds up from the edges (fixed)
 static std::atomic<bool>  g_sl_on{true};             // NFS Unbound style speed lines flying out from the middle while nitro burns
 static constexpr float g_sl_opacity = 0.60f;         // their opacity (fixed)
 static std::atomic<float> g_player_speed{0.0f};      // the player's car speed in m/s, from the physics step (steers the speed lines)
@@ -71,7 +78,14 @@ static bool car_disabled(int id) {
 // The Nitrous Kit garage upgrade (Garage > Upgrades > Custom upgrade > Engine, 3 stages, kept per owned car), from
 // NitroSystem II: nu_upgrade.h. nu_level() is the stage on the car being driven (0 = no kit), nu_tank() its tank.
 static void nu_say(const char* t) { if (g_api && g_mod) g_api->log(g_mod, t); }
-#define NU_TR(english) tr(english)   // the garage texts in the game's language (lang.cpp)
+// The garage texts in the game's language: nu_sql.h writes them as FH2_TR(NU_L10N_API, NU_L10N_MOD, key, English),
+// and its stage descriptions' numbers the way the language writes them.
+#define NU_L10N_API g_api
+#define NU_L10N_MOD g_mod
+static int nu_l10n_number(double v, int decimals, char* out, size_t n) {
+    return FH2_L10N_HAS(g_api, format_number) ? g_api->format_number(v, decimals, out, n) : 0;
+}
+#define NU_FORMAT_NUMBER(v, decimals, out, n) nu_l10n_number((v), (decimals), (out), (n))
 #include "nu_upgrade.h"
 
 // Whether the kit decides which cars have nitro: on in the ini, and the upgrade is set up and its hook is in.
@@ -1693,9 +1707,8 @@ static void detour_speedo_tick(void* speedo, float rpm) {
             fx_env = envelope * 0.8f;
             vignette_alpha = envelope * 0.8f;   // fades out instead of cutting
         }
-        // Layer A (edge tint) gets the opacity, layer B (the wider glow) the opacity times the intensity.
+        // Both layers (edge tint, wider glow) take this opacity from item 18; the glow's 0.9 is in its XAML colours.
         const float vig_a = g_vig_on.load() ? vignette_alpha * g_vig_opacity : 0.0f;
-        const float vig_b = vig_a * g_vig_intensity;
         // Speed lines (see scripts/gen_speedlines.py): six tiers of looping streak animations, each made for a different
         // car speed. The tiers are crossfaded by the car's speed (the weights are interpolated on a log scale between the
         // speeds the tiers are made for), so the lines get faster as the car does, without a visible jump. Each tier's
@@ -1756,10 +1769,10 @@ static void detour_speedo_tick(void* speedo, float rpm) {
                         } targets[8] = {
                             {17, s1, tip_x},                 // Segment 1 (Bottom); Y = digital glow offset
                             {18, s2, vignette_alpha},        // Segment 2; Y = opacity of the blue nitro vignette
-                            {19, s3, vig_b < 0.004f ? 0.0f : vig_b}, // Segment 3; Y = opacity of the wider blue glow (vignette layer B)
+                            {19, s3, sl_tier[0]},            // Segment 3; Y = speed line tier 0's opacity (vignette layer B shares item 18)
                             {20, s4, frame_shown ? 1.0f : 0.0f},     // Segment 4 (Top); Y = opacity of the NOS frame (1 = shown)
                             {16, glow_scale, leading_angle}, // Active Glowing Tip Cap (X=Ratio, Y=Angle)
-                            {15, sl_tier[0], sl_tier[1]},    // speed line tiers 0 and 1: opacity (the stock rev numbers 13 to 15 are removed from the XAML)
+                            {15, NAN, sl_tier[1]},           // X: the KITT mod's (its mode), left alone; Y = speed line tier 1 (rev numbers 13 to 15 aren't in the XAML)
                             {14, sl_tier[2], sl_tier[3]},    // tiers 2 and 3
                             {13, sl_tier[4], sl_tier[5]}     // tiers 4 and 5
                         };
@@ -1769,7 +1782,7 @@ static void detour_speedo_tick(void* speedo, float rpm) {
                             if (!item) continue;
 
                             float* p_x = (float*)((uintptr_t)item + 0x38);
-                            if (fabsf(*p_x - t.x) > 0.0005f) {
+                            if (!std::isnan(t.x) && fabsf(*p_x - t.x) > 0.0005f) {   // NaN: another mod's value
                                 *p_x = t.x;
                                 if (prop_xpos) raise_item_prop(item, prop_xpos);
                             }
@@ -1793,10 +1806,40 @@ static void detour_speedo_tick(void* speedo, float rpm) {
 static void set_rumble(WORD left_motor, WORD right_motor);
 
 // Nitro Button and HUD Theme are choice rows (0-based) on platform 2.8.0 and up, sliders (1-based) before.
+// The main switch's label, with the NOS button in it: "Nitro System (LB)". Text built from a translation isn't
+// re-translated by the platform, so it's set again when the game's language or the button changes.
+static std::string& enable_label() {
+    static std::string label;
+    // L10N(row-label): the mod's main switch; {button} is the NOS button's name (LB, RB, A...)
+    label = fh2_fill(FH2_TR(g_api, g_mod, "row.NitroEnabled.label", "Nitro System ({button})"),
+                     {{"button", k_buttons[button_index()].label}});
+    return label;
+}
+static void refresh_enable_label() {
+    if (FH2_L10N_HAS(g_api, set_setting_text))
+        g_api->set_setting_text(g_mod, "NitroEnabled", enable_label().c_str(), nullptr, nullptr, 0);
+}
+
+// Every second: when the game's text language changes (it picks one a few seconds after starting), what isn't
+// re-translated by the platform itself follows: the main switch's label and the NOS Kit's garage texts.
+static void follow_game_language() {
+    static char last[16] = "";
+    char code[16];
+    if (!g_api || !g_mod || !FH2_L10N_HAS(g_api, game_language) || !g_api->game_language(code, sizeof(code))) return;
+    if (strcmp(code, last) == 0) return;
+    strcpy_s(last, code);
+    refresh_enable_label();
+    nu_rebuild_texts();
+    char msg[80];
+    snprintf(msg, sizeof(msg), "Game language: %s (Mods page and garage texts follow it).", code);
+    g_api->log(g_mod, msg);
+}
+
 static void set_nitro_button(int idx) {
     if (idx < 0) idx = 0;
     if (idx >= k_button_count) idx = k_button_count - 1;
     g_nitro_button.store(k_buttons[idx].mask);
+    refresh_enable_label();   // "Nitro System (RB)"
     save_config();
     char buf[128];
     snprintf(buf, sizeof(buf), "NitroButton set to %ls (saved)", k_buttons[idx].name);
@@ -1841,8 +1884,8 @@ static void on_setting_changed(void* user, const char* key, int value) {
     if (strcmp(key, "RequireNitrousKit") == 0) {
         g_require_kit.store(value != 0);
         save_config();
-        if (g_api && g_mod) g_api->log(g_mod, value ? "Nitrous Kit required: only cars with the garage upgrade have nitro"
-                                                    : "Nitrous Kit not required: every car has nitro (Nitro Boost Multiplier)");
+        if (g_api && g_mod) g_api->log(g_mod, value ? "NOS Kit required: only cars with the kit have NOS (the garage entry comes back after a restart)"
+                                                    : "NOS Kit not required: every car has NOS (the garage entry goes after a restart)");
         return;
     }
     if (strcmp(key, "HudHide") == 0) {
@@ -2793,6 +2836,14 @@ static void nitro_worker_thread() {
         float dt = std::chrono::duration<float>(now - last_time).count();
         last_time = now;
         if (dt > 0.1f) dt = 0.1f; // Clamp delta time spike
+        {   // the game picks its language a few seconds in, and the player can change it: follow it
+            static uint64_t lang_checked = 0;
+            const uint64_t t = GetTickCount64();
+            if (t - lang_checked >= 1000) {
+                lang_checked = t;
+                follow_game_language();
+            }
+        }
 
         if (!g_enabled.load()) {
             if (g_nitro_active.load()) {
@@ -2823,11 +2874,6 @@ static void nitro_worker_thread() {
         // Only run while the player is actually driving: car physics is simulating (not Pause Menu,
         // Map or Loading) and the HUD speedometer is ticking (not Garage or a car meet lobby).
         uint64_t now_ms = GetTickCount64();
-        static uint64_t lang_checked = 0;
-        if (now_ms - lang_checked >= 2000) {   // the game's language, for the Mods page next time
-            lang_checked = now_ms;
-            lang_poll(g_game_base);
-        }
         bool physics_active = (now_ms - g_last_physics_tick.load()) < 200;
         bool driving = physics_active && (now_ms - g_last_speedo_tick.load()) < 200;
 
@@ -3227,24 +3273,27 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
     info.check_updates    = 1;
     info.offline_only     = 1;
     
-    // The ini, and the language the Mods page shows (the one the game starts in), before any text is used
     init_paths();
-    lang_init(g_ini_path, g_api->azimuth_dir);
-    info.description = tr("Fast & Furious NOS for every car in Forza Horizon 2, with exhaust flames, sound and a NOS gauge. "
+    // In the game's language: the platform looks it up itself, under "mod.description" (l10n\*.po)
+    info.description = FH2_TR_DESCRIPTION("Fast & Furious NOS for every car in Forza Horizon 2, with exhaust flames, sound and a NOS gauge. "
                           "Hold the NOS Button (LB unless you change it) to boost.");
 
     g_mod = api->register_mod(&info);
     if (!g_mod) return 1;
+    // Our text in the game's language (platform 2.9.0, API 10): the platform follows the game's language itself
+    {
+        const int languages = FH2_ADD_TRANSLATIONS(api, g_mod, nitro_translations);
+        char msg[96];
+        snprintf(msg, sizeof(msg), "Translations: %d languages (game language now: %s).", languages,
+                 FH2_L10N_HAS(api, language) ? api->language() : "English, platform before 2.9.0");
+        api->log(g_mod, msg);
+    }
+    if (g_ini_path[0]) WritePrivateProfileStringW(L"Language", NULL, NULL, g_ini_path);   // older versions' own guess
 
     // The switch other mods can use to turn the player's NOS off (include\NitroSystemControl.h)
     if (api->publish_interface) api->publish_interface(g_mod, NITROSYSTEM_CONTROL_NAME, NITROSYSTEM_CONTROL_VERSION, &k_control);
 
     api->log(g_mod, "NitroSystem initializing (LB to boost)...");
-    {
-        char lang_msg[64];
-        snprintf(lang_msg, sizeof(lang_msg), "Mods page language: %s", lang_code());
-        api->log(g_mod, lang_msg);
-    }
 
     // Load persistent settings from FnFNitro.ini
     load_config();
@@ -3273,11 +3322,17 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
         snprintf(msg, sizeof(msg), "NOS Kit of each car: %ls", garage_file.c_str());
         api->log(g_mod, msg);
     }
-    // The garage upgrade (the NOS Kit part). Set up even when the kit isn't required, so the setting can be
-    // turned on in game; without it every car has NOS.
-    g_kit_ready.store(nu_init(api, g_mod, g_ini_path) != 0);
-    if (!g_kit_ready.load())
-        api->log(g_mod, "The NOS Kit upgrade could not be set up (platform too old?): every car has NOS.");
+    // The garage upgrade (the NOS Kit part), only when the kit is required: with Require NOS Kit off every car has NOS,
+    // and a kit for sale would make no sense. Turning the setting on takes a restart (the row says so); the stage each
+    // car had is kept in the garage file meanwhile. Without the upgrade every car has NOS.
+    if (g_require_kit.load()) {
+        nu_car_excluded = [](long ordinal) { return car_disabled(static_cast<int>(ordinal)) ? 1 : 0; };   // KITT & co.: no kit offered
+        g_kit_ready.store(nu_init(api, g_mod, g_ini_path) != 0);
+        if (!g_kit_ready.load())
+            api->log(g_mod, "The NOS Kit upgrade could not be set up (platform too old?): every car has NOS.");
+    } else {
+        api->log(g_mod, "Require NOS Kit is off: every car has NOS, and the NOS Kit isn't added to the garage.");
+    }
     apply_hud_theme();   // before the game first reads the HUD files
     apply_backfire_effect();
     remove_legacy_files();
@@ -3287,10 +3342,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
         FH2Setting s_enable{};
         s_enable.size        = sizeof(s_enable);
         s_enable.key         = "NitroEnabled";
-        static std::string enable_label;
-        enable_label         = std::string(tr("Nitro System")) + " (" + k_buttons[button_index()].label + ")";
-        s_enable.label       = enable_label.c_str();
-        s_enable.description = tr("Turns the Fast & Furious NOS on or off. Hold the NOS Button while driving to boost.");
+        s_enable.label       = enable_label().c_str();
+        s_enable.description = FH2_TR(g_api, g_mod, "row.NitroEnabled.description", "Turns the Fast & Furious NOS on or off. Hold the NOS Button while driving to boost.");
         s_enable.value       = g_enabled.load() ? 1 : 0;
         s_enable.on_change   = on_setting_changed;
         api->add_setting(g_mod, &s_enable);
@@ -3298,8 +3351,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
         FH2Setting s_debug{};
         s_debug.size        = sizeof(s_debug);
         s_debug.key         = "DebugOverlay";
-        s_debug.label       = tr("NOS Debug Overlay");
-        s_debug.description = tr("Draws NOS and flame debug info over the game (needs borderless/windowed mode).");
+        s_debug.label       = FH2_TR(g_api, g_mod, "row.DebugOverlay.label", "NOS Debug Overlay");
+        s_debug.description = FH2_TR(g_api, g_mod, "row.DebugOverlay.description", "Draws NOS and flame debug info over the game (needs borderless/windowed mode).");
         s_debug.value       = g_debug.load() ? 1 : 0;
         s_debug.on_change   = on_setting_changed;
         api->add_setting(g_mod, &s_debug);
@@ -3307,8 +3360,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
         FH2Setting s_backfire{};
         s_backfire.size          = sizeof(s_backfire);
         s_backfire.key           = "BackfireOnAllCars";
-        s_backfire.label         = tr("Backfire on All Cars");
-        s_backfire.description   = tr("Lets every car backfire, which the NOS exhaust flames need. Off leaves the game's own backfire settings alone. Takes effect after a restart.");
+        s_backfire.label         = FH2_TR(g_api, g_mod, "row.BackfireOnAllCars.label", "Backfire on All Cars");
+        s_backfire.description   = FH2_TR(g_api, g_mod, "row.BackfireOnAllCars.description", "Lets every car backfire, which the NOS exhaust flames need. Off leaves the game's own backfire settings alone. Takes effect after a restart.");
         s_backfire.value         = g_backfire_all_cars.load() ? 1 : 0;
         s_backfire.needs_restart = 1;
         s_backfire.on_change     = on_setting_changed;
@@ -3317,8 +3370,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
         FH2Setting s_refill{};
         s_refill.size        = sizeof(s_refill);
         s_refill.key         = "RefillOnRaceStart";
-        s_refill.label       = tr("Refill NOS on Race Start");
-        s_refill.description = tr("Fills the NOS tank when a race starts, you quit one, you change car or you fast travel.");
+        s_refill.label       = FH2_TR(g_api, g_mod, "row.RefillOnRaceStart.label", "Refill NOS on Race Start");
+        s_refill.description = FH2_TR(g_api, g_mod, "row.RefillOnRaceStart.description", "Fills the NOS tank when a race starts, you quit one, you change car or you fast travel.");
         s_refill.value       = g_refill_on_start.load() ? 1 : 0;
         s_refill.on_change   = on_setting_changed;
         api->add_setting(g_mod, &s_refill);
@@ -3326,8 +3379,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
         FH2Setting s_rewind{};
         s_rewind.size        = sizeof(s_rewind);
         s_rewind.key         = "RefundOnRewind";
-        s_rewind.label       = tr("Refund NOS on Rewind");
-        s_rewind.description = tr("Rewinding gives back the NOS you used since the point you rewind to.");
+        s_rewind.label       = FH2_TR(g_api, g_mod, "row.RefundOnRewind.label", "Refund NOS on Rewind");
+        s_rewind.description = FH2_TR(g_api, g_mod, "row.RefundOnRewind.description", "Rewinding gives back the NOS you used since the point you rewind to.");
         s_rewind.value       = g_refund_on_rewind.load() ? 1 : 0;
         s_rewind.on_change   = on_setting_changed;
         api->add_setting(g_mod, &s_rewind);
@@ -3335,8 +3388,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
         FH2Setting s_rumble{};
         s_rumble.size        = sizeof(s_rumble);
         s_rumble.key         = "Rumble";
-        s_rumble.label       = tr("NOS Controller Rumble");
-        s_rumble.description = tr("Rumbles the controller while NOS is active. The game's own rumble isn't affected.");
+        s_rumble.label       = FH2_TR(g_api, g_mod, "row.Rumble.label", "NOS Controller Rumble");
+        s_rumble.description = FH2_TR(g_api, g_mod, "row.Rumble.description", "Rumbles the controller while NOS is active. The game's own rumble isn't affected.");
         s_rumble.value       = g_rumble.load() ? 1 : 0;
         s_rumble.on_change   = on_setting_changed;
         api->add_setting(g_mod, &s_rumble);
@@ -3344,8 +3397,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
         FH2Setting s_drivatar{};
         s_drivatar.size        = sizeof(s_drivatar);
         s_drivatar.key         = "DrivatarNitro";
-        s_drivatar.label       = tr("Drivatar NOS");
-        s_drivatar.description = tr("Drivatars use NOS too, whenever they can (not before the race starts), from "
+        s_drivatar.label       = FH2_TR(g_api, g_mod, "row.DrivatarNitro.label", "Drivatar NOS");
+        s_drivatar.description = FH2_TR(g_api, g_mod, "row.DrivatarNitro.description", "Drivatars use NOS too, whenever they can (not before the race starts), from "
                                     "a tank with twice your capacity and recharge, with flames and sound. Not once they're over "
                                     "100 m ahead of you, so you can catch up. Applies right away.");
         s_drivatar.value       = g_drivatar_nitro.load() ? 1 : 0;
@@ -3355,18 +3408,20 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
         FH2Setting s_kit{};
         s_kit.size        = sizeof(s_kit);
         s_kit.key         = "RequireNitrousKit";
-        s_kit.label       = tr("Require NOS Kit");
-        s_kit.description = tr("On: only cars with the NOS Kit (Garage > Upgrades > Custom upgrade > Engine) have NOS, "
-                               "and the stage sets the tank and its recharge. Off: every car has NOS, with the NOS Tank Capacity and NOS Recharge Rate. Applies right away.");
-        s_kit.value       = g_require_kit.load() ? 1 : 0;
-        s_kit.on_change   = on_setting_changed;
+        s_kit.label       = FH2_TR(g_api, g_mod, "row.RequireNitrousKit.label", "Require NOS Kit");
+        s_kit.description = FH2_TR(g_api, g_mod, "row.RequireNitrousKit.description", "On: only cars with the NOS Kit (Garage > Upgrades > Custom upgrade > Engine) have NOS, "
+                               "and the stage sets the tank and its recharge. Off: every car has NOS, with the NOS Tank Capacity and NOS Recharge Rate, "
+                                                     "and the NOS Kit isn't in the garage.");
+        s_kit.value         = g_require_kit.load() ? 1 : 0;
+        s_kit.needs_restart = 1;   // the garage entry is set up at startup (which cars have NOS changes right away)
+        s_kit.on_change     = on_setting_changed;
         api->add_setting(g_mod, &s_kit);
 
         FH2Setting s_hide{};
         s_hide.size        = sizeof(s_hide);
         s_hide.key         = "HudHide";
-        s_hide.label       = tr("Hide NOS Gauge Without Kit");
-        s_hide.description = tr("On: the NOS gauge frame is hidden on cars without a NOS Kit. Off: an empty frame stays.");
+        s_hide.label       = FH2_TR(g_api, g_mod, "row.HudHide.label", "Hide NOS Gauge Without Kit");
+        s_hide.description = FH2_TR(g_api, g_mod, "row.HudHide.description", "On: the NOS gauge frame is hidden on cars without a NOS Kit. Off: an empty frame stays.");
         s_hide.value       = g_hud_hide.load() ? 1 : 0;
         s_hide.on_change   = on_setting_changed;
         api->add_setting(g_mod, &s_hide);
@@ -3374,8 +3429,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
         FH2Setting s_vig_on{};
         s_vig_on.size        = sizeof(s_vig_on);
         s_vig_on.key         = "VignetteEnabled";
-        s_vig_on.label       = tr("NOS Blue Vignette");
-        s_vig_on.description = tr("A pulsing blue vignette at the screen edges while NOS is active.");
+        s_vig_on.label       = FH2_TR(g_api, g_mod, "row.VignetteEnabled.label", "NOS Blue Vignette");
+        s_vig_on.description = FH2_TR(g_api, g_mod, "row.VignetteEnabled.description", "A pulsing blue vignette at the screen edges while NOS is active.");
         s_vig_on.value       = g_vig_on.load() ? 1 : 0;
         s_vig_on.on_change   = on_setting_changed;
         api->add_setting(g_mod, &s_vig_on);
@@ -3383,8 +3438,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
         FH2Setting s_sl_on{};
         s_sl_on.size        = sizeof(s_sl_on);
         s_sl_on.key         = "SpeedLinesEnabled";
-        s_sl_on.label       = tr("NOS Speed Lines");
-        s_sl_on.description = tr("Thin blue streaks flying out toward the screen edges while NOS is active, in step with the car's speed.");
+        s_sl_on.label       = FH2_TR(g_api, g_mod, "row.SpeedLinesEnabled.label", "NOS Speed Lines");
+        s_sl_on.description = FH2_TR(g_api, g_mod, "row.SpeedLinesEnabled.description", "Thin blue streaks flying out toward the screen edges while NOS is active, in step with the car's speed.");
         s_sl_on.value       = g_sl_on.load() ? 1 : 0;
         s_sl_on.on_change   = on_setting_changed;
         api->add_setting(g_mod, &s_sl_on);
@@ -3393,18 +3448,16 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
         // picked by number (listed in the description).
         static const char* button_choices[k_button_count];
         for (int i = 0; i < k_button_count; ++i) button_choices[i] = k_buttons[i].label;
-        static const char* theme_choices[] = {tr("Original"), "Fast & Furious"};   // a name: the same in every language
+        static const char* theme_choices[] = {FH2_TR(g_api, g_mod, "row.HudTheme.choice.0", "Original"), "Fast & Furious"};   // a name: the same in every language
         const bool choices = api->api_version >= 9;
 
         if (choices) {
             FH2Setting s_button{};
             s_button.size         = sizeof(s_button);
             s_button.key          = "NitroButton";
-            s_button.label        = tr("NOS Button");
-            static std::string button_desc;
-            button_desc           = std::string(tr("Which button burns NOS.")) + " " +
-                                    tr("Pick one the game doesn't use while driving. Applies right away.");
-            s_button.description  = button_desc.c_str();
+            s_button.label        = FH2_TR(g_api, g_mod, "row.NitroButton.label", "NOS Button");
+            s_button.description  = FH2_TR(g_api, g_mod, "row.NitroButton.description",
+                                           "Which button burns NOS. Pick one the game doesn't use while driving. Applies right away.");
             s_button.kind         = FH2_SETTING_CHOICE;
             s_button.choices      = button_choices;
             s_button.choice_count = k_button_count;
@@ -3415,8 +3468,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
             FH2Setting s_hud{};
             s_hud.size          = sizeof(s_hud);
             s_hud.key           = "HudTheme";
-            s_hud.label         = tr("HUD Theme");
-            s_hud.description   = tr("Original: the game's HUD with a yellow NOS bar. Fast & Furious: cyan NOS bar, gears and assist icons.");
+            s_hud.label         = FH2_TR(g_api, g_mod, "row.HudTheme.label", "HUD Theme");
+            s_hud.description   = FH2_TR(g_api, g_mod, "row.HudTheme.description", "Original: the game's HUD with a yellow NOS bar. Fast & Furious: cyan NOS bar, gears and assist icons.");
             s_hud.kind          = FH2_SETTING_CHOICE;
             s_hud.choices       = theme_choices;
             s_hud.choice_count  = 2;
@@ -3428,12 +3481,11 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
             FH2Setting s_button{};
             s_button.size          = sizeof(s_button);
             s_button.key           = "NitroButton";
-            s_button.label         = tr("NOS Button");
-            static std::string button_desc;   // the buttons by their names, the same in every language
-            button_desc            = std::string("1 LB, 2 RB, 3 A, 4 B, 5 X, 6 Y, 7 LS click, 8 RS click, 9 D-Pad Up, "
-                                                 "10 D-Pad Down, 11 D-Pad Left, 12 D-Pad Right, 13 Back, 14 Start, 15 LT, 16 RT. ") +
-                                     tr("Pick one the game doesn't use while driving. Applies right away.");
-            s_button.description   = button_desc.c_str();
+            s_button.label         = FH2_TR(g_api, g_mod, "row.NitroButton.label", "NOS Button");
+            s_button.description   = FH2_TR(g_api, g_mod, "row.NitroButton.slider_description",
+                                            "1 LB, 2 RB, 3 A, 4 B, 5 X, 6 Y, 7 LS click, 8 RS click, 9 D-Pad Up, "
+                                            "10 D-Pad Down, 11 D-Pad Left, 12 D-Pad Right, 13 Back, 14 Start, 15 LT, 16 RT. "
+                                            "Pick one the game doesn't use while driving. Applies right away.");
             s_button.kind          = FH2_SETTING_SLIDER;
             s_button.min           = 1.0f;
             s_button.max           = (float)k_button_count;
@@ -3447,8 +3499,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
             FH2Setting s_hud{};
             s_hud.size          = sizeof(s_hud);
             s_hud.key           = "HudTheme";
-            s_hud.label         = tr("HUD Theme");
-            s_hud.description   = tr("1 Original (yellow NOS bar), 2 Fast & Furious (cyan NOS bar, gears and assist icons).");
+            s_hud.label         = FH2_TR(g_api, g_mod, "row.HudTheme.label", "HUD Theme");
+            s_hud.description   = FH2_TR(g_api, g_mod, "row.HudTheme.slider_description", "1 Original (yellow NOS bar), 2 Fast & Furious (cyan NOS bar, gears and assist icons).");
             s_hud.kind          = FH2_SETTING_SLIDER;
             s_hud.min           = 1.0f;
             s_hud.max           = 2.0f;
@@ -3466,8 +3518,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
             FH2Setting s_torque{};
             s_torque.size          = sizeof(s_torque);
             s_torque.key           = "TorqueScale";
-            s_torque.label         = tr("NOS Boost Multiplier");
-            s_torque.description   = tr("Multiplies forward acceleration while NOS is active (Spire default: 1.6x).");
+            s_torque.label         = FH2_TR(g_api, g_mod, "row.TorqueScale.label", "NOS Boost Multiplier");
+            s_torque.description   = FH2_TR(g_api, g_mod, "row.TorqueScale.description", "Multiplies forward acceleration while NOS is active (Spire default: 1.6x).");
             s_torque.kind          = FH2_SETTING_SLIDER;
             s_torque.min           = 1.0f;
             s_torque.max           = 2.0f;
@@ -3481,11 +3533,10 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
             FH2Setting s_dur{};
             s_dur.size          = sizeof(s_dur);
             s_dur.key           = "Duration";
-            s_dur.label         = tr("NOS Tank Capacity (sec)");
-            static std::string dur_desc;
-            dur_desc            = std::string(tr("Total seconds of continuous boost available in a full tank (Spire default: 20s).")) + " " +
-                                  tr("Ignored while Require NOS Kit is on: then the NOS Kit's stage sets the tank.");
-            s_dur.description   = dur_desc.c_str();
+            s_dur.label         = FH2_TR(g_api, g_mod, "row.Duration.label", "NOS Tank Capacity (sec)");
+            s_dur.description   = FH2_TR(g_api, g_mod, "row.Duration.description",
+                                         "Total seconds of continuous boost available in a full tank (Spire default: 20s). "
+                                         "Ignored while Require NOS Kit is on: then the NOS Kit's stage sets the tank.");
             s_dur.kind          = FH2_SETTING_SLIDER;
             s_dur.min           = 5.0f;
             s_dur.max           = 60.0f;
@@ -3499,8 +3550,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
             FH2Setting s_buildup{};
             s_buildup.size          = sizeof(s_buildup);
             s_buildup.key           = "BuildupTime";
-            s_buildup.label         = tr("NOS Buildup Time (sec)");
-            s_buildup.description   = tr("Time taken to ramp up to full boost torque (Spire default: 0.5s).");
+            s_buildup.label         = FH2_TR(g_api, g_mod, "row.BuildupTime.label", "NOS Buildup Time (sec)");
+            s_buildup.description   = FH2_TR(g_api, g_mod, "row.BuildupTime.description", "Time taken to ramp up to full boost torque (Spire default: 0.5s).");
             s_buildup.kind          = FH2_SETTING_SLIDER;
             s_buildup.min           = 0.1f;
             s_buildup.max           = 2.0f;
@@ -3514,11 +3565,10 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
             FH2Setting s_recharge{};
             s_recharge.size          = sizeof(s_recharge);
             s_recharge.key           = "RechargeRate";
-            s_recharge.label         = tr("NOS Recharge Rate");
-            static std::string recharge_desc;
-            recharge_desc            = std::string(tr("Seconds of NOS restored per second while not boosting.")) + " " +
-                                       tr("Ignored while Require NOS Kit is on: then the NOS Kit's stage sets the recharge rate.");
-            s_recharge.description   = recharge_desc.c_str();
+            s_recharge.label         = FH2_TR(g_api, g_mod, "row.RechargeRate.label", "NOS Recharge Rate");
+            s_recharge.description   = FH2_TR(g_api, g_mod, "row.RechargeRate.description",
+                                              "Seconds of NOS restored per second while not boosting. "
+                                              "Ignored while Require NOS Kit is on: then the NOS Kit's stage sets the recharge rate.");
             s_recharge.kind          = FH2_SETTING_SLIDER;
             s_recharge.min           = 0.0f;
             s_recharge.max           = 1.0f;
@@ -3532,8 +3582,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
             FH2Setting s_volume{};
             s_volume.size          = sizeof(s_volume);
             s_volume.key           = "SoundVolume";
-            s_volume.label         = tr("NOS Sound Volume");
-            s_volume.description   = tr("Volume of the boost and stop sounds. The game's own volume sliders don't change them.");
+            s_volume.label         = FH2_TR(g_api, g_mod, "row.SoundVolume.label", "NOS Sound Volume");
+            s_volume.description   = FH2_TR(g_api, g_mod, "row.SoundVolume.description", "Volume of the boost and stop sounds. The game's own volume sliders don't change them.");
             s_volume.kind          = FH2_SETTING_SLIDER;
             s_volume.min           = 0.0f;
             s_volume.max           = 1.0f;
@@ -3547,8 +3597,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
             FH2Setting s_ai_volume{};
             s_ai_volume.size          = sizeof(s_ai_volume);
             s_ai_volume.key           = "DrivatarSoundVolume";
-            s_ai_volume.label         = tr("Drivatar NOS Volume");
-            s_ai_volume.description   = tr("Volume of the Drivatars' NOS, heard from their cars (with Drivatar NOS on). 0 silences it.");
+            s_ai_volume.label         = FH2_TR(g_api, g_mod, "row.DrivatarSoundVolume.label", "Drivatar NOS Volume");
+            s_ai_volume.description   = FH2_TR(g_api, g_mod, "row.DrivatarSoundVolume.description", "Volume of the Drivatars' NOS, heard from their cars (with Drivatar NOS on). 0 silences it.");
             s_ai_volume.kind          = FH2_SETTING_SLIDER;
             s_ai_volume.min           = 0.0f;
             s_ai_volume.max           = 1.0f;
@@ -3562,8 +3612,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
             FH2Setting s_shake{};
             s_shake.size          = sizeof(s_shake);
             s_shake.key           = "CameraShake";
-            s_shake.label         = tr("NOS Camera Shake");
-            s_shake.description   = tr("How much the camera shakes while NOS is active, in the driver, hood, bumper and chase views. 0 turns it off.");
+            s_shake.label         = FH2_TR(g_api, g_mod, "row.CameraShake.label", "NOS Camera Shake");
+            s_shake.description   = FH2_TR(g_api, g_mod, "row.CameraShake.description", "How much the camera shakes while NOS is active, in the driver, hood, bumper and chase views. 0 turns it off.");
             s_shake.kind          = FH2_SETTING_SLIDER;
             s_shake.min           = 0.0f;
             s_shake.max           = 1.0f;
@@ -3577,8 +3627,8 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
             FH2Setting s_fov{};
             s_fov.size          = sizeof(s_fov);
             s_fov.key           = "FovBoost";
-            s_fov.label         = tr("NOS Wider FOV");
-            s_fov.description   = tr("How much wider the field of view gets while NOS is active, in the driver, hood, bumper and chase views. 0 turns it off.");
+            s_fov.label         = FH2_TR(g_api, g_mod, "row.FovBoost.label", "NOS Wider FOV");
+            s_fov.description   = FH2_TR(g_api, g_mod, "row.FovBoost.description", "How much wider the field of view gets while NOS is active, in the driver, hood, bumper and chase views. 0 turns it off.");
             s_fov.kind          = FH2_SETTING_SLIDER;
             s_fov.min           = 0.0f;
             s_fov.max           = 0.3f;

@@ -2322,7 +2322,9 @@
         <!-- Nitro vignette: two full-screen radial gradients, far bigger than this control and shifted to the middle
              of the 1920x1080 scene. The plugin sets their opacity while the nitro burns (0 = invisible).
              A: the edge tint, opacity from RPMGaugeNumbers[18].YPos.
-             B: a wider glow that reaches further in (the Intensity setting), opacity from RPMGaugeNumbers[19].YPos. -->
+             B: a wider glow that reaches further in, opacity from RPMGaugeNumbers[18].YPos too: its strength (0.9 of A's)
+                is in its colours' alpha, so [19].YPos is free for a speed-line tier (RPMGaugeNumbers[15].XPos is the
+                KITT mod's: it writes its mode there). -->
         <Border HorizontalAlignment="Center" VerticalAlignment="Center" Width="2300" Height="1350"
                 IsHitTestVisible="False" DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
                 Opacity="{Binding RPMGaugeNumbers[18].YPos}">
@@ -2343,7 +2345,7 @@
         </Border>
         <Border HorizontalAlignment="Center" VerticalAlignment="Center" Width="2300" Height="1350"
                 IsHitTestVisible="False" DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
-                Opacity="{Binding RPMGaugeNumbers[19].YPos}">
+                Opacity="{Binding RPMGaugeNumbers[18].YPos}">
             <Border.RenderTransform>
                 <TranslateTransform X="-693" Y="-362"/>
             </Border.RenderTransform>
@@ -2351,10 +2353,10 @@
                 <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
                     <GradientStop Color="#001E78FF" Offset="0"/>
                     <GradientStop Color="#001E78FF" Offset="0.3"/>
-                    <GradientStop Color="#101E78FF" Offset="0.5"/>
-                    <GradientStop Color="#2C1E78FF" Offset="0.7"/>
-                    <GradientStop Color="#561E8CFF" Offset="0.85"/>
-                    <GradientStop Color="#801E8CFF" Offset="1"/>
+                    <GradientStop Color="#0E1E78FF" Offset="0.5"/>
+                    <GradientStop Color="#281E78FF" Offset="0.7"/>
+                    <GradientStop Color="#4D1E8CFF" Offset="0.85"/>
+                    <GradientStop Color="#731E8CFF" Offset="1"/>
                 </RadialGradientBrush>
             </Border.Background>
         </Border>
@@ -2368,10 +2370,10 @@
 
         <!-- SPEEDLINES-BEGIN elements -->
         <!-- Nitro speed lines (like NFS Unbound), see scripts/gen_speedlines.py: streaks flying outward in 6 tiers of different speed.
-             They run all the time; the plugin sets the opacity of each tier container (RPMGaugeNumbers[15].XPos, RPMGaugeNumbers[15].YPos, RPMGaugeNumbers[14].XPos, RPMGaugeNumbers[14].YPos, RPMGaugeNumbers[13].XPos, RPMGaugeNumbers[13].YPos)
+             They run all the time; the plugin sets the opacity of each tier container (RPMGaugeNumbers[19].YPos, RPMGaugeNumbers[15].YPos, RPMGaugeNumbers[14].XPos, RPMGaugeNumbers[14].YPos, RPMGaugeNumbers[13].XPos, RPMGaugeNumbers[13].YPos)
              from the nitro and the car speed (0 = invisible), crossfading neighbouring tiers. -->
         <Grid x:Name="NitroTier0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="2300" Height="1350" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5" DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
-              Opacity="{Binding RPMGaugeNumbers[15].XPos}">
+              Opacity="{Binding RPMGaugeNumbers[19].YPos}">
             <Grid.RenderTransform>
                 <TransformGroup><ScaleTransform/><SkewTransform/><RotateTransform/><TranslateTransform X="-693" Y="-362"/></TransformGroup>
             </Grid.RenderTransform>

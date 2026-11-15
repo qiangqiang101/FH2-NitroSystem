@@ -1,0 +1,228 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: NitroSystem\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "mod.description"
+msgid "Fast & Furious NOS for every car in Forza Horizon 2, with exhaust flames, sound and a NOS gauge. Hold the NOS Button (LB unless you change it) to boost."
+msgstr "Il NOS di Fast & Furious per tutte le auto di Forza Horizon 2, con fiamme dallo scarico, suono e indicatore NOS. Tieni premuto il pulsante del NOS (LB se non lo cambi) per accelerare."
+
+msgctxt "row.NitroEnabled.label"
+msgid "Nitro System ({button})"
+msgstr "Sistema nitro ({button})"
+
+msgctxt "row.NitroEnabled.description"
+msgid "Turns the Fast & Furious NOS on or off. Hold the NOS Button while driving to boost."
+msgstr "Attiva o disattiva il NOS di Fast & Furious. Tieni premuto il pulsante del NOS durante la guida per accelerare."
+
+msgctxt "row.DebugOverlay.label"
+msgid "NOS Debug Overlay"
+msgstr "Overlay di debug del NOS"
+
+msgctxt "row.DebugOverlay.description"
+msgid "Draws NOS and flame debug info over the game (needs borderless/windowed mode)."
+msgstr "Mostra sopra il gioco le informazioni di debug del NOS e delle fiamme (richiede la modalità finestra o senza bordi)."
+
+msgctxt "row.BackfireOnAllCars.label"
+msgid "Backfire on All Cars"
+msgstr "Ritorni di fiamma su tutte le auto"
+
+msgctxt "row.BackfireOnAllCars.description"
+msgid "Lets every car backfire, which the NOS exhaust flames need. Off leaves the game's own backfire settings alone. Takes effect after a restart."
+msgstr "Consente a ogni auto i ritorni di fiamma, necessari alle fiamme del NOS. Disattivato, lascia invariate le impostazioni del gioco. Ha effetto dopo il riavvio."
+
+msgctxt "row.RefillOnRaceStart.label"
+msgid "Refill NOS on Race Start"
+msgstr "Ricarica il NOS alla partenza"
+
+msgctxt "row.RefillOnRaceStart.description"
+msgid "Fills the NOS tank when a race starts, you quit one, you change car or you fast travel."
+msgstr "Riempie il serbatoio del NOS quando parte una gara, quando ne esci, cambi auto o usi il trasferimento rapido."
+
+msgctxt "row.RefundOnRewind.label"
+msgid "Refund NOS on Rewind"
+msgstr "Restituisci il NOS al riavvolgimento"
+
+msgctxt "row.RefundOnRewind.description"
+msgid "Rewinding gives back the NOS you used since the point you rewind to."
+msgstr "Riavvolgendo recuperi il NOS usato dal punto a cui torni."
+
+msgctxt "row.Rumble.label"
+msgid "NOS Controller Rumble"
+msgstr "Vibrazione del controller col NOS"
+
+msgctxt "row.Rumble.description"
+msgid "Rumbles the controller while NOS is active. The game's own rumble isn't affected."
+msgstr "Fa vibrare il controller mentre il NOS è attivo. La vibrazione del gioco non cambia."
+
+msgctxt "row.DrivatarNitro.label"
+msgid "Drivatar NOS"
+msgstr "NOS dei Drivatar"
+
+msgctxt "row.DrivatarNitro.description"
+msgid "Drivatars use NOS too, whenever they can (not before the race starts), from a tank with twice your capacity and recharge, with flames and sound. Not once they're over 100 m ahead of you, so you can catch up. Applies right away."
+msgstr "Anche i Drivatar usano il NOS quando possono (mai prima della partenza), con un serbatoio dalla capacità e dalla ricarica doppie rispetto alle tue, con fiamme e suono. Non quando sono più di 100 m davanti a te, così puoi raggiungerli. Effetto immediato."
+
+msgctxt "row.RequireNitrousKit.label"
+msgid "Require NOS Kit"
+msgstr "Richiedi kit NOS"
+
+msgctxt "row.RequireNitrousKit.description"
+msgid "On: only cars with the NOS Kit (Garage > Upgrades > Custom upgrade > Engine) have NOS, and the stage sets the tank and its recharge. Off: every car has NOS, with the NOS Tank Capacity and NOS Recharge Rate, and the NOS Kit isn't in the garage."
+msgstr "Attivo: solo le auto con il kit NOS (si compra in garage, come potenziamento del motore) hanno il NOS, e lo stadio ne fissa serbatoio e ricarica. Disattivo: tutte le auto hanno il NOS, con la capacità del serbatoio del NOS e la ricarica del NOS, e il kit NOS non è in garage."
+
+msgctxt "row.HudHide.label"
+msgid "Hide NOS Gauge Without Kit"
+msgstr "Nascondi indicatore senza kit"
+
+msgctxt "row.HudHide.description"
+msgid "On: the NOS gauge frame is hidden on cars without a NOS Kit. Off: an empty frame stays."
+msgstr "Attivo: la cornice dell'indicatore NOS è nascosta sulle auto senza kit NOS. Disattivo: resta una cornice vuota."
+
+msgctxt "row.VignetteEnabled.label"
+msgid "NOS Blue Vignette"
+msgstr "Vignettatura blu del NOS"
+
+msgctxt "row.VignetteEnabled.description"
+msgid "A pulsing blue vignette at the screen edges while NOS is active."
+msgstr "Una vignettatura blu pulsante ai bordi dello schermo mentre il NOS è attivo."
+
+msgctxt "row.SpeedLinesEnabled.label"
+msgid "NOS Speed Lines"
+msgstr "Linee di velocità del NOS"
+
+msgctxt "row.SpeedLinesEnabled.description"
+msgid "Thin blue streaks flying out toward the screen edges while NOS is active, in step with the car's speed."
+msgstr "Sottili scie blu che volano verso i bordi dello schermo mentre il NOS è attivo, al ritmo della velocità dell'auto."
+
+msgctxt "row.NitroButton.label"
+msgid "NOS Button"
+msgstr "Pulsante del NOS"
+
+msgctxt "row.NitroButton.description"
+msgid "Which button burns NOS. Pick one the game doesn't use while driving. Applies right away."
+msgstr "Il pulsante che attiva il NOS. Scegline uno che il gioco non usa durante la guida. Effetto immediato."
+
+msgctxt "row.NitroButton.slider_description"
+msgid "1 LB, 2 RB, 3 A, 4 B, 5 X, 6 Y, 7 LS click, 8 RS click, 9 D-Pad Up, 10 D-Pad Down, 11 D-Pad Left, 12 D-Pad Right, 13 Back, 14 Start, 15 LT, 16 RT. Pick one the game doesn't use while driving. Applies right away."
+msgstr "1 LB, 2 RB, 3 A, 4 B, 5 X, 6 Y, 7 LS click, 8 RS click, 9 D-Pad Up, 10 D-Pad Down, 11 D-Pad Left, 12 D-Pad Right, 13 Back, 14 Start, 15 LT, 16 RT. Scegline uno che il gioco non usa durante la guida. Effetto immediato."
+
+msgctxt "row.HudTheme.label"
+msgid "HUD Theme"
+msgstr "Tema dell'HUD"
+
+msgctxt "row.HudTheme.choice.0"
+msgid "Original"
+msgstr "Originale"
+
+msgctxt "row.HudTheme.description"
+msgid "Original: the game's HUD with a yellow NOS bar. Fast & Furious: cyan NOS bar, gears and assist icons."
+msgstr "Originale: l'HUD del gioco con la barra NOS gialla. Fast & Furious: barra NOS, marce e icone degli aiuti in ciano."
+
+msgctxt "row.HudTheme.slider_description"
+msgid "1 Original (yellow NOS bar), 2 Fast & Furious (cyan NOS bar, gears and assist icons)."
+msgstr "1 Originale (barra NOS gialla), 2 Fast & Furious (barra NOS, marce e icone degli aiuti in ciano)."
+
+msgctxt "row.TorqueScale.label"
+msgid "NOS Boost Multiplier"
+msgstr "Moltiplicatore del NOS"
+
+msgctxt "row.TorqueScale.description"
+msgid "Multiplies forward acceleration while NOS is active (Spire default: 1.6x)."
+msgstr "Moltiplica l'accelerazione in avanti mentre il NOS è attivo (valore di Spire: 1,6x)."
+
+msgctxt "row.Duration.label"
+msgid "NOS Tank Capacity (sec)"
+msgstr "Capacità del serbatoio del NOS (s)"
+
+msgctxt "row.Duration.description"
+msgid "Total seconds of continuous boost available in a full tank (Spire default: 20s). Ignored while Require NOS Kit is on: then the NOS Kit's stage sets the tank."
+msgstr "Secondi di boost continuo con il serbatoio pieno (valore di Spire: 20 s). Ignorato con Richiedi kit NOS attivo: allora il serbatoio dipende dallo stadio del kit NOS."
+
+msgctxt "row.BuildupTime.label"
+msgid "NOS Buildup Time (sec)"
+msgstr "Tempo di entrata del NOS (s)"
+
+msgctxt "row.BuildupTime.description"
+msgid "Time taken to ramp up to full boost torque (Spire default: 0.5s)."
+msgstr "Tempo per arrivare alla piena spinta del NOS (valore di Spire: 0,5 s)."
+
+msgctxt "row.RechargeRate.label"
+msgid "NOS Recharge Rate"
+msgstr "Ricarica del NOS"
+
+msgctxt "row.RechargeRate.description"
+msgid "Seconds of NOS restored per second while not boosting. Ignored while Require NOS Kit is on: then the NOS Kit's stage sets the recharge rate."
+msgstr "Secondi di NOS recuperati al secondo quando non lo usi. Ignorato con Richiedi kit NOS attivo: allora la ricarica dipende dallo stadio del kit NOS."
+
+msgctxt "row.SoundVolume.label"
+msgid "NOS Sound Volume"
+msgstr "Volume del suono del NOS"
+
+msgctxt "row.SoundVolume.description"
+msgid "Volume of the boost and stop sounds. The game's own volume sliders don't change them."
+msgstr "Volume dei suoni del boost e dell'arresto. I cursori del volume del gioco non li cambiano."
+
+msgctxt "row.DrivatarSoundVolume.label"
+msgid "Drivatar NOS Volume"
+msgstr "Volume del NOS dei Drivatar"
+
+msgctxt "row.DrivatarSoundVolume.description"
+msgid "Volume of the Drivatars' NOS, heard from their cars (with Drivatar NOS on). 0 silences it."
+msgstr "Volume del NOS dei Drivatar, udito dalle loro auto (con NOS dei Drivatar attivo). 0 lo silenzia."
+
+msgctxt "row.CameraShake.label"
+msgid "NOS Camera Shake"
+msgstr "Tremolio della visuale col NOS"
+
+msgctxt "row.CameraShake.description"
+msgid "How much the camera shakes while NOS is active, in the driver, hood, bumper and chase views. 0 turns it off."
+msgstr "Quanto trema la visuale col NOS attivo, nelle visuali pilota, cofano, paraurti e inseguimento. 0 lo disattiva."
+
+msgctxt "row.FovBoost.label"
+msgid "NOS Wider FOV"
+msgstr "Campo visivo più ampio col NOS"
+
+msgctxt "row.FovBoost.description"
+msgid "How much wider the field of view gets while NOS is active, in the driver, hood, bumper and chase views. 0 turns it off."
+msgstr "Quanto si allarga il campo visivo col NOS attivo, nelle visuali pilota, cofano, paraurti e inseguimento. 0 lo disattiva."
+
+msgctxt "garage.kit.name"
+msgid "NOS Kit"
+msgstr "Kit NOS"
+
+msgctxt "garage.kit.description"
+msgid "NOS injection. Hold the NOS button while driving; a higher stage has a bigger tank that recharges faster."
+msgstr "Iniezione di NOS. Tieni premuto il pulsante del NOS durante la guida; più alto è lo stadio, più grande è il serbatoio e più rapida la ricarica."
+
+msgctxt "garage.stock.name"
+msgid "Stock"
+msgstr "Di serie"
+
+msgctxt "garage.stage1.name"
+msgid "Stage 1 NOS"
+msgstr "NOS stadio 1"
+
+msgctxt "garage.stage2.name"
+msgid "Stage 2 NOS"
+msgstr "NOS stadio 2"
+
+msgctxt "garage.stage3.name"
+msgid "Stage 3 NOS"
+msgstr "NOS stadio 3"
+
+msgctxt "garage.stage4.name"
+msgid "Stage 4 NOS"
+msgstr "NOS stadio 4"
+
+msgctxt "garage.stock.description"
+msgid "No NOS fitted."
+msgstr "Nessun impianto NOS montato."
+
+msgctxt "garage.stage.description"
+msgid "NOS, stage {n}: {s} s tank, recharges {r} s per second."
+msgstr "NOS, stadio {n}: serbatoio da {s} s, ricarica {r} s al secondo."

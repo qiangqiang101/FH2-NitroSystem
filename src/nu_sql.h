@@ -179,11 +179,19 @@ static void nu_addref(NuBuf *b,unsigned key){
     nu_adds(b,"_&");nu_addn(b,(long)((NU_STR_HASH<<16)|key));
 }
 
-/* The texts can be translated: define NU_TR(english) before including this file to return the text (UTF-8) in
-   the player's language. The stage description is a template: {n} = the stage, {s} = its tank in seconds,
-   {r} = its recharge in seconds per second ("0.25"), {r,} = the same with a decimal comma ("0,25"). */
-#ifndef NU_TR
-#define NU_TR(english) (english)
+/* The texts are translated by the FH2 Mod Platform (API 10): FH2_TR(api, mod, key, English) from fh2mod_l10n.h,
+   with the api and mod the includer names as NU_L10N_API and NU_L10N_MOD; the keys and English are what
+   platform/tools/l10n/extract.py lists for translators (l10n/NitroSystem.pot). Without those (a test build), the
+   English. The stage description is a template: {n} = the stage, {s} = its tank in seconds, {r} = its recharge in
+   seconds per second, written the language's way by NU_FORMAT_NUMBER (0.25, or 0,25 in German) when the includer
+   has one, else as 0.25. */
+#ifndef FH2_TR
+#define NU_TR_ENGLISH_ONLY(api, mod, key, english) (english)
+#define FH2_TR NU_TR_ENGLISH_ONLY   /* (written so, extract.py doesn't take the fallback for a text) */
+#endif
+#ifndef NU_L10N_API
+#define NU_L10N_API 0
+#define NU_L10N_MOD 0
 #endif
 #define NU_TEXT_MAX 400   /* bytes of UTF-8 a key's text may take, with its NUL */
 
@@ -191,10 +199,14 @@ static void nu_fill(NuBuf *b,const char *t,int lvl,const NuCfg *cfg){
     while(*t){
         if(t[0]=='{'&&t[1]=='n'&&t[2]=='}'){nu_addn(b,lvl);t+=3;continue;}
         if(t[0]=='{'&&t[1]=='s'&&t[2]=='}'){nu_addn(b,cfg->tank[lvl]);t+=3;continue;}
-        if(t[0]=='{'&&t[1]=='r'&&(t[2]=='}'||(t[2]==','&&t[3]=='}'))){
+        if(t[0]=='{'&&t[1]=='r'&&t[2]=='}'){
             int h=cfg->recharge[lvl];
-            nu_addn(b,h/100);nu_adds(b,t[2]==','?",":".");nu_addn(b,(h%100)/10);nu_addn(b,h%10);
-            t+=t[2]==','?4:3;continue;
+#ifdef NU_FORMAT_NUMBER
+            char num[32];
+            if(NU_FORMAT_NUMBER(h/100.0,2,num,sizeof num)>0){nu_adds(b,num);t+=3;continue;}
+#endif
+            nu_addn(b,h/100);nu_adds(b,".");nu_addn(b,(h%100)/10);nu_addn(b,h%10);
+            t+=3;continue;
         }
         nu_add(b,t,1);t++;
     }
@@ -202,22 +214,32 @@ static void nu_fill(NuBuf *b,const char *t,int lvl,const NuCfg *cfg){
 
 /* The text of one of our keys (UTF-8, under NU_TEXT_MAX bytes), or NULL. `tmp` needs NU_TEXT_MAX bytes. */
 static const char *nu_key_text(unsigned key,char *tmp,const NuCfg *cfg){
-    if(key==NU_KEY_TYPE_NAME)return NU_TR("NOS Kit");
-    if(key==NU_KEY_TYPE_DESC)return NU_TR("NOS injection. Hold the NOS button while driving; a higher stage has a bigger tank that recharges faster.");
-    if(key==NU_KEY_PART_NAME)return NU_TR("Stock");
+    /* L10N(card-name): the garage upgrade's name, under Custom upgrade > Engine */
+    if(key==NU_KEY_TYPE_NAME)return FH2_TR(NU_L10N_API,NU_L10N_MOD,"garage.kit.name","NOS Kit");
+    /* L10N(card-description): the upgrade's description in the garage */
+    if(key==NU_KEY_TYPE_DESC)return FH2_TR(NU_L10N_API,NU_L10N_MOD,"garage.kit.description","NOS injection. Hold the NOS button while driving; a higher stage has a bigger tank that recharges faster.");
+    /* L10N(card-name): the upgrade's first choice, no NOS (use the game's own word for a stock part) */
+    if(key==NU_KEY_PART_NAME)return FH2_TR(NU_L10N_API,NU_L10N_MOD,"garage.stock.name","Stock");
     if(key>NU_KEY_PART_NAME&&key<NU_KEY_PART_NAME+NU_LEVELS){
         switch(key-NU_KEY_PART_NAME){
-        case 1:return NU_TR("Stage 1 NOS");
-        case 2:return NU_TR("Stage 2 NOS");
-        case 3:return NU_TR("Stage 3 NOS");
-        default:return NU_TR("Stage 4 NOS");
+        /* L10N(card-name): a stage of the NOS Kit you can buy */
+        case 1:return FH2_TR(NU_L10N_API,NU_L10N_MOD,"garage.stage1.name","Stage 1 NOS");
+        /* L10N(card-name): a stage of the NOS Kit you can buy */
+        case 2:return FH2_TR(NU_L10N_API,NU_L10N_MOD,"garage.stage2.name","Stage 2 NOS");
+        /* L10N(card-name): a stage of the NOS Kit you can buy */
+        case 3:return FH2_TR(NU_L10N_API,NU_L10N_MOD,"garage.stage3.name","Stage 3 NOS");
+        /* L10N(card-name): a stage of the NOS Kit you can buy */
+        default:return FH2_TR(NU_L10N_API,NU_L10N_MOD,"garage.stage4.name","Stage 4 NOS");
         }
     }
     if(key>=NU_KEY_PART_DESC&&key<NU_KEY_PART_DESC+NU_LEVELS){
         int lvl=(int)(key-NU_KEY_PART_DESC);
         NuBuf b;nu_begin(&b,tmp,NU_TEXT_MAX-1);
-        if(!lvl)nu_adds(&b,NU_TR("No NOS fitted."));
-        else nu_fill(&b,NU_TR("NOS, stage {n}: {s} s tank, recharges {r} s per second."),lvl,cfg);
+        /* L10N(card-description): the description of the Stock choice */
+        if(!lvl)nu_adds(&b,FH2_TR(NU_L10N_API,NU_L10N_MOD,"garage.stock.description","No NOS fitted."));
+        /* L10N(card-description): a stage's description; {n} is the stage (1 to 4), {s} its tank in seconds (whole),
+           {r} the seconds of NOS it refills per second (0.25, written the language's way) */
+        else nu_fill(&b,FH2_TR(NU_L10N_API,NU_L10N_MOD,"garage.stage.description","NOS, stage {n}: {s} s tank, recharges {r} s per second."),lvl,cfg);
         tmp[b.at]=0;
         return tmp;
     }

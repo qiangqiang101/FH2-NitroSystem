@@ -10,7 +10,8 @@ How it works:
     whose opacity the plugin sets from the car's speed: neighbouring tiers are crossfaded, so as the car speeds up the
     lines get faster without a visible jump. The tier containers also sway slowly (a looping rotation of a few degrees)
     so a streak does not come back on exactly the same path every time.
-  * The container opacities are data items of the speedometer: RPMGaugeNumbers[15].XPos, [15].YPos, [14].XPos, ...
+  * The container opacities are data items of the speedometer: RPMGaugeNumbers[19].YPos, [15].YPos, [14].XPos, ...
+    ([15].XPos is the KITT mod's, which writes its mode there; [19].YPos is free since the vignette's two layers share [18].YPos)
     (the stock rev numbers 13..15 are removed from the XAML for it).
 """
 import math, os, random, re
@@ -20,7 +21,7 @@ path = os.path.join(root, 'hud', 'HUDSpeedometerControl.xaml')
 # the km/h each tier is made for  -- keep in step with kSpeedLineTierKmh in nitro_mod.cpp
 TIER_KMH = [40, 70, 110, 165, 235, 320]
 PER_TIER = 10
-CHANNELS = ['RPMGaugeNumbers[15].XPos', 'RPMGaugeNumbers[15].YPos', 'RPMGaugeNumbers[14].XPos',
+CHANNELS = ['RPMGaugeNumbers[19].YPos', 'RPMGaugeNumbers[15].YPos', 'RPMGaugeNumbers[14].XPos',
             'RPMGaugeNumbers[14].YPos', 'RPMGaugeNumbers[13].XPos', 'RPMGaugeNumbers[13].YPos']
 SWAY = 20            # +- degrees a tier container sways
 SWAY_PERIODS = [13.0, 17.0, 11.0, 15.0, 19.0, 12.0]   # seconds

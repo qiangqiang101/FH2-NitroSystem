@@ -1,0 +1,330 @@
+# NitroSystem: the English text to translate, from tools/l10n/extract.py. Don't edit this file: run it again.
+# Translate it into l10n/<language>.po (pl.po, pt_BR.po): docs/translating.md in the FH2 Mod Platform.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: NitroSystem\n"
+
+#. the mod's main switch; {button} is the NOS button's name (LB, RB, A...)
+#: src/nitro_mod.cpp:1814
+#, max-length:30
+msgctxt "row.NitroEnabled.label"
+msgid "Nitro System ({button})"
+msgstr ""
+
+#: src/nitro_mod.cpp:3278
+#, max-length:450
+msgctxt "mod.description"
+msgid "Fast & Furious NOS for every car in Forza Horizon 2, with exhaust flames, sound and a NOS gauge. Hold the NOS Button (LB unless you change it) to boost."
+msgstr ""
+
+#: src/nitro_mod.cpp:3346
+#, max-length:450
+msgctxt "row.NitroEnabled.description"
+msgid "Turns the Fast & Furious NOS on or off. Hold the NOS Button while driving to boost."
+msgstr ""
+
+#: src/nitro_mod.cpp:3354
+#, max-length:30
+msgctxt "row.DebugOverlay.label"
+msgid "NOS Debug Overlay"
+msgstr ""
+
+#: src/nitro_mod.cpp:3355
+#, max-length:450
+msgctxt "row.DebugOverlay.description"
+msgid "Draws NOS and flame debug info over the game (needs borderless/windowed mode)."
+msgstr ""
+
+#: src/nitro_mod.cpp:3363
+#, max-length:30
+msgctxt "row.BackfireOnAllCars.label"
+msgid "Backfire on All Cars"
+msgstr ""
+
+#: src/nitro_mod.cpp:3364
+#, max-length:450
+msgctxt "row.BackfireOnAllCars.description"
+msgid "Lets every car backfire, which the NOS exhaust flames need. Off leaves the game's own backfire settings alone. Takes effect after a restart."
+msgstr ""
+
+#: src/nitro_mod.cpp:3373
+#, max-length:30
+msgctxt "row.RefillOnRaceStart.label"
+msgid "Refill NOS on Race Start"
+msgstr ""
+
+#: src/nitro_mod.cpp:3374
+#, max-length:450
+msgctxt "row.RefillOnRaceStart.description"
+msgid "Fills the NOS tank when a race starts, you quit one, you change car or you fast travel."
+msgstr ""
+
+#: src/nitro_mod.cpp:3382
+#, max-length:30
+msgctxt "row.RefundOnRewind.label"
+msgid "Refund NOS on Rewind"
+msgstr ""
+
+#: src/nitro_mod.cpp:3383
+#, max-length:450
+msgctxt "row.RefundOnRewind.description"
+msgid "Rewinding gives back the NOS you used since the point you rewind to."
+msgstr ""
+
+#: src/nitro_mod.cpp:3391
+#, max-length:30
+msgctxt "row.Rumble.label"
+msgid "NOS Controller Rumble"
+msgstr ""
+
+#: src/nitro_mod.cpp:3392
+#, max-length:450
+msgctxt "row.Rumble.description"
+msgid "Rumbles the controller while NOS is active. The game's own rumble isn't affected."
+msgstr ""
+
+#: src/nitro_mod.cpp:3400
+#, max-length:30
+msgctxt "row.DrivatarNitro.label"
+msgid "Drivatar NOS"
+msgstr ""
+
+#: src/nitro_mod.cpp:3401
+#, max-length:450
+msgctxt "row.DrivatarNitro.description"
+msgid "Drivatars use NOS too, whenever they can (not before the race starts), from a tank with twice your capacity and recharge, with flames and sound. Not once they're over 100 m ahead of you, so you can catch up. Applies right away."
+msgstr ""
+
+#: src/nitro_mod.cpp:3411
+#, max-length:30
+msgctxt "row.RequireNitrousKit.label"
+msgid "Require NOS Kit"
+msgstr ""
+
+#: src/nitro_mod.cpp:3412
+#, max-length:450
+msgctxt "row.RequireNitrousKit.description"
+msgid "On: only cars with the NOS Kit (Garage > Upgrades > Custom upgrade > Engine) have NOS, and the stage sets the tank and its recharge. Off: every car has NOS, with the NOS Tank Capacity and NOS Recharge Rate, and the NOS Kit isn't in the garage."
+msgstr ""
+
+#: src/nitro_mod.cpp:3423
+#, max-length:30
+msgctxt "row.HudHide.label"
+msgid "Hide NOS Gauge Without Kit"
+msgstr ""
+
+#: src/nitro_mod.cpp:3424
+#, max-length:450
+msgctxt "row.HudHide.description"
+msgid "On: the NOS gauge frame is hidden on cars without a NOS Kit. Off: an empty frame stays."
+msgstr ""
+
+#: src/nitro_mod.cpp:3432
+#, max-length:30
+msgctxt "row.VignetteEnabled.label"
+msgid "NOS Blue Vignette"
+msgstr ""
+
+#: src/nitro_mod.cpp:3433
+#, max-length:450
+msgctxt "row.VignetteEnabled.description"
+msgid "A pulsing blue vignette at the screen edges while NOS is active."
+msgstr ""
+
+#: src/nitro_mod.cpp:3441
+#, max-length:30
+msgctxt "row.SpeedLinesEnabled.label"
+msgid "NOS Speed Lines"
+msgstr ""
+
+#: src/nitro_mod.cpp:3442
+#, max-length:450
+msgctxt "row.SpeedLinesEnabled.description"
+msgid "Thin blue streaks flying out toward the screen edges while NOS is active, in step with the car's speed."
+msgstr ""
+
+#: src/nitro_mod.cpp:3451
+#, max-length:12
+msgctxt "row.HudTheme.choice.0"
+msgid "Original"
+msgstr ""
+
+#: src/nitro_mod.cpp:3458 src/nitro_mod.cpp:3484
+#, max-length:30
+msgctxt "row.NitroButton.label"
+msgid "NOS Button"
+msgstr ""
+
+#: src/nitro_mod.cpp:3459
+#, max-length:450
+msgctxt "row.NitroButton.description"
+msgid "Which button burns NOS. Pick one the game doesn't use while driving. Applies right away."
+msgstr ""
+
+#: src/nitro_mod.cpp:3471 src/nitro_mod.cpp:3502
+#, max-length:30
+msgctxt "row.HudTheme.label"
+msgid "HUD Theme"
+msgstr ""
+
+#: src/nitro_mod.cpp:3472
+#, max-length:450
+msgctxt "row.HudTheme.description"
+msgid "Original: the game's HUD with a yellow NOS bar. Fast & Furious: cyan NOS bar, gears and assist icons."
+msgstr ""
+
+#: src/nitro_mod.cpp:3485
+msgctxt "row.NitroButton.slider_description"
+msgid "1 LB, 2 RB, 3 A, 4 B, 5 X, 6 Y, 7 LS click, 8 RS click, 9 D-Pad Up, 10 D-Pad Down, 11 D-Pad Left, 12 D-Pad Right, 13 Back, 14 Start, 15 LT, 16 RT. Pick one the game doesn't use while driving. Applies right away."
+msgstr ""
+
+#: src/nitro_mod.cpp:3503
+msgctxt "row.HudTheme.slider_description"
+msgid "1 Original (yellow NOS bar), 2 Fast & Furious (cyan NOS bar, gears and assist icons)."
+msgstr ""
+
+#: src/nitro_mod.cpp:3521
+#, max-length:30
+msgctxt "row.TorqueScale.label"
+msgid "NOS Boost Multiplier"
+msgstr ""
+
+#: src/nitro_mod.cpp:3522
+#, max-length:450
+msgctxt "row.TorqueScale.description"
+msgid "Multiplies forward acceleration while NOS is active (Spire default: 1.6x)."
+msgstr ""
+
+#: src/nitro_mod.cpp:3536
+#, max-length:30
+msgctxt "row.Duration.label"
+msgid "NOS Tank Capacity (sec)"
+msgstr ""
+
+#: src/nitro_mod.cpp:3537
+#, max-length:450
+msgctxt "row.Duration.description"
+msgid "Total seconds of continuous boost available in a full tank (Spire default: 20s). Ignored while Require NOS Kit is on: then the NOS Kit's stage sets the tank."
+msgstr ""
+
+#: src/nitro_mod.cpp:3553
+#, max-length:30
+msgctxt "row.BuildupTime.label"
+msgid "NOS Buildup Time (sec)"
+msgstr ""
+
+#: src/nitro_mod.cpp:3554
+#, max-length:450
+msgctxt "row.BuildupTime.description"
+msgid "Time taken to ramp up to full boost torque (Spire default: 0.5s)."
+msgstr ""
+
+#: src/nitro_mod.cpp:3568
+#, max-length:30
+msgctxt "row.RechargeRate.label"
+msgid "NOS Recharge Rate"
+msgstr ""
+
+#: src/nitro_mod.cpp:3569
+#, max-length:450
+msgctxt "row.RechargeRate.description"
+msgid "Seconds of NOS restored per second while not boosting. Ignored while Require NOS Kit is on: then the NOS Kit's stage sets the recharge rate."
+msgstr ""
+
+#: src/nitro_mod.cpp:3585
+#, max-length:30
+msgctxt "row.SoundVolume.label"
+msgid "NOS Sound Volume"
+msgstr ""
+
+#: src/nitro_mod.cpp:3586
+#, max-length:450
+msgctxt "row.SoundVolume.description"
+msgid "Volume of the boost and stop sounds. The game's own volume sliders don't change them."
+msgstr ""
+
+#: src/nitro_mod.cpp:3600
+#, max-length:30
+msgctxt "row.DrivatarSoundVolume.label"
+msgid "Drivatar NOS Volume"
+msgstr ""
+
+#: src/nitro_mod.cpp:3601
+#, max-length:450
+msgctxt "row.DrivatarSoundVolume.description"
+msgid "Volume of the Drivatars' NOS, heard from their cars (with Drivatar NOS on). 0 silences it."
+msgstr ""
+
+#: src/nitro_mod.cpp:3615
+#, max-length:30
+msgctxt "row.CameraShake.label"
+msgid "NOS Camera Shake"
+msgstr ""
+
+#: src/nitro_mod.cpp:3616
+#, max-length:450
+msgctxt "row.CameraShake.description"
+msgid "How much the camera shakes while NOS is active, in the driver, hood, bumper and chase views. 0 turns it off."
+msgstr ""
+
+#: src/nitro_mod.cpp:3630
+#, max-length:30
+msgctxt "row.FovBoost.label"
+msgid "NOS Wider FOV"
+msgstr ""
+
+#: src/nitro_mod.cpp:3631
+#, max-length:450
+msgctxt "row.FovBoost.description"
+msgid "How much wider the field of view gets while NOS is active, in the driver, hood, bumper and chase views. 0 turns it off."
+msgstr ""
+
+#: src/nu_sql.h:218
+msgctxt "garage.kit.name"
+msgid "NOS Kit"
+msgstr ""
+
+#: src/nu_sql.h:220
+#, max-length:450
+msgctxt "garage.kit.description"
+msgid "NOS injection. Hold the NOS button while driving; a higher stage has a bigger tank that recharges faster."
+msgstr ""
+
+#: src/nu_sql.h:222
+msgctxt "garage.stock.name"
+msgid "Stock"
+msgstr ""
+
+#: src/nu_sql.h:226
+msgctxt "garage.stage1.name"
+msgid "Stage 1 NOS"
+msgstr ""
+
+#: src/nu_sql.h:228
+msgctxt "garage.stage2.name"
+msgid "Stage 2 NOS"
+msgstr ""
+
+#: src/nu_sql.h:230
+msgctxt "garage.stage3.name"
+msgid "Stage 3 NOS"
+msgstr ""
+
+#: src/nu_sql.h:232
+msgctxt "garage.stage4.name"
+msgid "Stage 4 NOS"
+msgstr ""
+
+#: src/nu_sql.h:239
+#, max-length:450
+msgctxt "garage.stock.description"
+msgid "No NOS fitted."
+msgstr ""
+
+#: src/nu_sql.h:242
+#, max-length:450
+msgctxt "garage.stage.description"
+msgid "NOS, stage {n}: {s} s tank, recharges {r} s per second."
+msgstr ""
