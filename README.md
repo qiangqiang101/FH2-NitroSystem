@@ -265,6 +265,7 @@ foreach ($t in $targets) {
 - **One file per player, picked at startup.** The mod uses the `saves\player-N` folder written last; switching players during a session is only noticed at the next launch.
 - **Stage 4 shows Stage 3's icon.** There's no picture of its own for it yet (`icons\stage4.png`).
 - **`[Upgrade]` changes need a restart.** The stages and their descriptions ("NOS, stage 3: 20 s tank, recharges 0.30 s per second.") are made at startup.
+- **With the speedometer hidden, the screen effects are simpler.** The blue vignette and the speed lines are then drawn on the HUD layer's canvas (platform 2.9.1 or newer) instead of on the speedometer: the vignette is plain stepped edge frames and the speed lines are straight streaks, not the speedometer's gradient and animated versions. On an older platform they don't show at all. The NOS gauge itself is part of the speedometer, so it isn't shown while the speedometer is hidden; NOS still works (button, boost, sound, rumble and flames).
 
 ---
 

@@ -4,3 +4,6 @@ bin/
 *.suo
 .vs/
 release/
+
+# Local notes for Claude Code (not committed)
+CLAUDE.md

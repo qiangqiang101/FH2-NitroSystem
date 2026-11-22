@@ -1,6 +1,7 @@
 #include "fh2mod.h"
 #include "fh2mod_l10n.h"   // the platform's translations (API 10): FH2_TR
 #include "fh2game.h"
+#include "fh2mod_hud.h"   // the HUD layer's canvas (platform 2.9.1): the screen effects with the speedometer hidden
 #include "legacy_files.h"
 #include "../include/NitroSystemControl.h"
 #ifdef _MSC_VER
@@ -508,6 +509,11 @@ static std::atomic<uint64_t> g_last_physics_tick{0};
 static void* g_player_cardynamics = nullptr;
 static std::atomic<uint64_t> g_last_speedo_tick{0}; // HUD speedometer only ticks while driving with the HUD up
 
+// "The player is driving": the world is running and the game has said which car is the player's. None of this
+// comes from the HUD, so hiding the speedometer in the HUD settings changes nothing. (The speedometer tick used
+// to decide this, but it stops with the speedometer.) Defined after the position and kind readings it uses.
+static bool hud_driving(uint64_t now);
+
 // Telling the player's car from AI racers and traffic. Every simulated car has [+0x178] == 1, so that
 // flag can't. The world manager (CWorldCollObjMan::Update, RVA 0x384C00, first argument) holds the
 // player car's position at +0x4F0. We learn which offset inside CCarDynamics holds a world position by
@@ -697,6 +703,28 @@ static bool car_kind(void* dyn, uint64_t now, int* kind, uintptr_t* pres) {
 
 static bool player_known_by_kind(uint64_t now) {
     return now - g_kind_player_tick.load() < kKindFreshMs;
+}
+
+// The garage, the autoshow and the pre-race intro run the same physics as driving, so physics alone can't say.
+// What does: the platform knows whether the free-roam HUD page is on screen (the garage and the autoshow have pages
+// of their own) and whether the game has suspended its HUD (the pre-race intro, a car meet, the rewind). That is
+// the page, not the speedometer, so hiding the speedometer in the HUD settings changes nothing, and a car at a dead
+// stop can use nitro. If the platform never reports the page (an older one), fall back to the car having rolled
+// lately (15 s).
+static std::atomic<uint64_t> g_last_moving_tick{0};
+static std::atomic<bool> g_ui_seen_on_screen{false};
+static std::atomic<uint32_t> g_ui_bits{0};
+static bool hud_driving(uint64_t now) {
+    if (!(now - g_last_physics_tick.load() < 200 && now - g_player_pos_tick.load() < 500 && player_known_by_kind(now)))
+        return false;
+    if (g_api && g_mod && g_api->api_version >= 10 && g_api->ui_status) {
+        const uint32_t st = g_api->ui_status(g_mod);
+        g_ui_bits.store(st);
+        if (st & FH2_UI_ON_SCREEN) g_ui_seen_on_screen.store(true);
+        if (g_ui_seen_on_screen.load())
+            return (st & FH2_UI_ON_SCREEN) && !(st & FH2_UI_GAME_HUD_HIDDEN);
+    }
+    return now - g_last_moving_tick.load() < 15000;
 }
 
 static void note_car_locators(void* car, int kind, uintptr_t pres, uint64_t now);   // with the flames, below
@@ -983,7 +1011,7 @@ static void drivatar_nitro(void* dyn, uintptr_t pres, const float* fwd, float* v
         for (int i = 0; i < 3; ++i) s->last_pos[i] = ((const float*)((uintptr_t)dyn + off))[i];
 
     // Through the pre-race intro the player isn't driving; on the grid, through the countdown, the car doesn't move
-    const bool driving = now - g_last_speedo_tick.load() < 200;
+    const bool driving = hud_driving(now);
     if (!driving || s->real_speed < 1.5f) s->rolling = 0.0f;
     else s->rolling += dt_use;
     const bool launched = s->rolling >= kAiLaunchTime;
@@ -1064,6 +1092,7 @@ static bool detour_cardynamics(void* this_ptr, void* rdx, void* r8, uint32_t r9,
             bool grounded = true;
             if (mine) {
                 g_player_speed.store(sqrtf(vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2]));
+                if (g_player_speed.load() > 3.0f) g_last_moving_tick.store(now);
                 learn_up_axis(this_ptr, now);
                 grounded = update_grounded(this_ptr, vel, dt, now);
                 // Where the car is going: its velocity, or its nose when it's barely moving
@@ -1470,10 +1499,12 @@ static void drive_backfire_from_game_thread() {
 typedef uint64_t (*GameFrameFn)(void* self, void* flag);
 static GameFrameFn g_orig_game_frame = nullptr;
 
+static void update_canvas();   // the HUD canvas for the screen effects, below
 static uint64_t detour_game_frame(void* self, void* flag) {
     uint64_t r = g_orig_game_frame ? g_orig_game_frame(self, flag) : 0;
     g_frame_tid.store(GetCurrentThreadId(), std::memory_order_relaxed);
     drive_backfire_from_game_thread();
+    update_canvas();
     return r;
 }
 
@@ -1611,6 +1642,172 @@ static float vig_noise(float t, float rate) {
 typedef void (*SpeedoTickFn)(void* speedo, float rpm);
 static SpeedoTickFn g_orig_speedo_tick = nullptr;
 
+// The nitro screen effects' levels this frame: the vignette's opacity, each speed line tier's, and the speed lines'
+// overall level (for the canvas, which has one set of lines). Shared by the speedometer's gauge update and, with the
+// speedometer hidden, the HUD canvas.
+static void compute_fx_levels(bool active, float* vignette_out, float sl_tier[6], float* sl_level_out) {
+    // The pulsing blue vignette (a full-screen overlay in the speedometer XAML, opacity tied to item 18's YPos).
+    float vignette_alpha = 0.0f;
+    float fx_env = 0.0f;
+    if (active) {
+        float envelope = 0.0f, t = 0.0f;
+        fx_state(&envelope, &t);
+        fx_env = envelope;
+        const float pulse = 0.62f + 0.38f * (0.6f * vig_noise(t, 2.3f) + 0.4f * vig_noise(t + 37.1f, 5.7f));   // irregular, never below 62 %
+        vignette_alpha = envelope * pulse;
+    } else {
+        float envelope = 0.0f;
+        fx_state(&envelope, nullptr);
+        fx_env = envelope * 0.8f;
+        vignette_alpha = envelope * 0.8f;   // fades out instead of cutting
+    }
+    // Both layers (edge tint, wider glow) take this opacity from item 18; the glow's 0.9 is in its XAML colours.
+    const float vig_a = g_vig_on.load() ? vignette_alpha * g_vig_opacity : 0.0f;
+    // Speed lines (see scripts/gen_speedlines.py): six tiers of looping streak animations, each made for a different
+    // car speed. The tiers are crossfaded by the car's speed (the weights are interpolated on a log scale between the
+    // speeds the tiers are made for), so the lines get faster as the car does, without a visible jump. Each tier's
+    // container opacity is one HUD data item value: [15].X, [15].Y, [14].X, [14].Y, [13].X, [13].Y.
+    static const float kSpeedLineTierKmh[6] = {40.0f, 70.0f, 110.0f, 165.0f, 235.0f, 320.0f};   // keep in step with TIER_KMH in the generator
+    float sl_master = g_sl_on.load() ? fx_env * g_sl_opacity : 0.0f;
+    for (int i = 0; i < 6; ++i) sl_tier[i] = 0.0f;
+    {
+        const float kmh = g_player_speed.load() * 3.6f;
+        float w[6] = {0, 0, 0, 0, 0, 0};
+        if (kmh <= kSpeedLineTierKmh[0]) {
+            w[0] = 1.0f;
+        } else if (kmh >= kSpeedLineTierKmh[5]) {
+            w[5] = 1.0f;
+        } else {
+            for (int i = 0; i < 5; ++i) {
+                if (kmh <= kSpeedLineTierKmh[i + 1]) {
+                    const float x = logf(kmh / kSpeedLineTierKmh[i]) / logf(kSpeedLineTierKmh[i + 1] / kSpeedLineTierKmh[i]);
+                    w[i] = 1.0f - x;
+                    w[i + 1] = x;
+                    break;
+                }
+            }
+        }
+        float amp = (g_player_speed.load() - 15.0f) / 45.0f;   // subtler at low speed
+        amp = 0.45f + 0.55f * (amp < 0.0f ? 0.0f : (amp > 1.0f ? 1.0f : amp));
+        sl_master *= amp;
+        for (int i = 0; i < 6; ++i) {
+            const float v = sl_master * w[i];
+            sl_tier[i] = v < 0.004f ? 0.0f : v;
+        }
+    }
+    vignette_alpha = vig_a < 0.004f ? 0.0f : vig_a;
+*vignette_out = vignette_alpha;
+    *sl_level_out = sl_master;
+}
+
+
+// ---- Screen effects with the speedometer hidden ------------------------------------------------------------------
+// The vignette and the speed lines are drawn by the speedometer's XAML, and the game doesn't make the speedometer
+// when it's turned off in the HUD settings. On platform 2.9.1 the HUD layer's canvas, XAML of the mod's own in the
+// HUD page, draws a plainer version of them instead (no pictures, and gradients make the game refuse the page):
+// the vignette as nested hollow frames, the speed lines as streaks the mod moves outwards each frame. It's shown only
+// while the speedometer isn't ticking.
+static const FH2HudInterface* g_hud_if = nullptr;
+static bool g_canvas_ok = false;
+static const int kCanvasLines = 16;
+static const int kCanvasNumbers = 2 + kCanvasLines;   // N0 vignette opacity, N1 speed lines opacity, N2.. each streak's distance
+
+static std::string canvas_xaml() {
+    std::string x;
+    char b[600];
+    // The vignette: nested hollow frames, one element each (a Border with only its edge drawn), each fainter inward.
+    // (Gradients, tried twice, make the game refuse the whole HUD page; so do too many elements, so one per ring.)
+    x += "<Grid Opacity=\"{Binding N0}\">\n";
+    const int w = 8, rings = 30;
+    for (int k = 0; k < rings; ++k) {
+        const float f = 1.0f - (float)k / rings;
+        const int a = (int)(0x90 * f * f * f);
+        snprintf(b, sizeof b, "<Border Margin=\"%d\" BorderThickness=\"%d\" BorderBrush=\"#%02X1E8CFF\" IsHitTestVisible=\"False\"/>\n", k * w, w, a);
+        x += b;
+    }
+    x += "</Grid>\n<Grid Opacity=\"{Binding N1}\">\n";
+    // The speed lines: a streak at the middle of the screen, pushed out along its own angle by N<k>.
+    for (int i = 0; i < kCanvasLines; ++i) {
+        const float ang = i * (360.0f / kCanvasLines) + ((i * 7) % 5 - 2) * 3.0f;
+        const int len = 110 + (i * 37) % 90;
+        snprintf(b, sizeof b,
+                 "<Grid Width=\"0\" Height=\"0\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Top\" Margin=\"960,540,0,0\" RenderTransformOrigin=\"0,0\">"
+                 "<Grid.RenderTransform><TransformGroup><TranslateTransform X=\"{Binding N%d}\"/><RotateTransform Angle=\"%.1f\"/></TransformGroup></Grid.RenderTransform>"
+                 "<Path Data=\"M 0,0 L %d,0\" Stroke=\"#FFB8F2FF\" StrokeThickness=\"3\"/></Grid>\n",
+                 2 + i, ang, len);
+        x += b;
+    }
+    x += "</Grid>\n";
+    return x;
+}
+
+static void canvas_setup(const FH2ModApi* api) {
+    if (!api->get_interface) return;
+    if (!g_vig_on.load() && !g_sl_on.load()) return;
+    auto* hud = (const FH2HudInterface*)api->get_interface(FH2_HUD_INTERFACE, 2);
+    if (!hud || hud->version < 3 || hud->size < sizeof(FH2HudInterface)) {
+        api->log(g_mod, "HUD canvas: needs platform 2.9.1; the screen effects need the speedometer on.");
+        return;
+    }
+    FH2HudLayer layer{};
+    layer.size = sizeof layer;
+    layer.parts = FH2_HUD_PART_CANVAS;
+    layer.lease_ms = 2000;
+    if (!hud->add_hud_layer(g_mod, &layer)) return;
+    static std::string xaml = canvas_xaml();
+    FH2HudCanvas canvas{};
+    canvas.size = sizeof canvas;
+    canvas.xaml = xaml.c_str();
+    canvas.numbers = kCanvasNumbers;
+    if (!hud->add_hud_canvas(g_mod, &canvas)) return;
+    g_hud_if = hud;
+    g_canvas_ok = true;
+    api->log(g_mod, "HUD canvas added: the screen effects will show with the speedometer hidden.");
+}
+
+// Game thread, each frame.
+static void update_canvas() {
+    if (!g_canvas_ok || !g_hud_if) return;
+    static bool shown = false;
+    static uint64_t last = 0;
+    static float dist[kCanvasLines];
+    const uint64_t now = GetTickCount64();
+    const float dt = last ? std::min(0.1f, (now - last) / 1000.0f) : 0.0f;
+    last = now;
+
+    const bool speedo_up = now - g_last_speedo_tick.load() < 300;
+    const bool nos_on = g_enabled.load() && !nos_blocked();
+    const bool gauge_visible = nos_on && player_has_nitro();
+    float vig = 0.0f, tier[6], sl = 0.0f;
+    bool want = false;
+    if (!speedo_up && gauge_visible && hud_driving(now)) {
+        compute_fx_levels(g_nitro_active.load(), &vig, tier, &sl);
+        want = vig > 0.0f || sl > 0.0f;
+    }
+    if (!want) {
+        if (shown) { g_hud_if->show_hud_layer(g_mod, 0); shown = false; }
+        return;
+    }
+    // Keep the lease while shown; (re)show when it isn't.
+    if (!shown || !(g_hud_if->hud_status(g_mod) & FH2_HUD_SHOWN)) {
+        g_hud_if->show_hud_layer(g_mod, FH2_HUD_PART_CANVAS);
+        shown = true;
+    }
+    // Streaks move out faster the faster the car goes, each at its own pace
+    const float kmh = g_player_speed.load() * 3.6f;
+    const float rate = 500.0f + std::min(kmh, 320.0f) * 4.0f;
+    float n[kCanvasNumbers];
+    n[0] = floorf(vig * 100.0f) / 100.0f;
+    n[1] = floorf(sl * 100.0f) / 100.0f;
+    for (int i = 0; i < kCanvasLines; ++i) {
+        float& d = dist[i];
+        d += rate * (0.75f + 0.5f * ((i * 5) % 7) / 6.0f) * dt;
+        if (d > 760.0f) d = fmodf(d, 760.0f);
+        n[2 + i] = floorf((330.0f + d) * 2.0f) / 2.0f;
+    }
+    g_hud_if->set_hud_canvas_numbers(g_mod, n, kCanvasNumbers);
+}
+
 static void detour_speedo_tick(void* speedo, float rpm) {
     if (g_orig_speedo_tick) {
         g_orig_speedo_tick(speedo, rpm);
@@ -1692,56 +1889,8 @@ static void detour_speedo_tick(void* speedo, float rpm) {
             tip_x = lead * kSegPitch + kSegWidth * seg_fill[lead] - kBarWidth;
         }
 
-        // The pulsing blue vignette (a full-screen overlay in the speedometer XAML, opacity tied to item 18's YPos).
-        float vignette_alpha = 0.0f;
-        float fx_env = 0.0f;
-        if (active) {
-            float envelope = 0.0f, t = 0.0f;
-            fx_state(&envelope, &t);
-            fx_env = envelope;
-            const float pulse = 0.62f + 0.38f * (0.6f * vig_noise(t, 2.3f) + 0.4f * vig_noise(t + 37.1f, 5.7f));   // irregular, never below 62 %
-            vignette_alpha = envelope * pulse;
-        } else {
-            float envelope = 0.0f;
-            fx_state(&envelope, nullptr);
-            fx_env = envelope * 0.8f;
-            vignette_alpha = envelope * 0.8f;   // fades out instead of cutting
-        }
-        // Both layers (edge tint, wider glow) take this opacity from item 18; the glow's 0.9 is in its XAML colours.
-        const float vig_a = g_vig_on.load() ? vignette_alpha * g_vig_opacity : 0.0f;
-        // Speed lines (see scripts/gen_speedlines.py): six tiers of looping streak animations, each made for a different
-        // car speed. The tiers are crossfaded by the car's speed (the weights are interpolated on a log scale between the
-        // speeds the tiers are made for), so the lines get faster as the car does, without a visible jump. Each tier's
-        // container opacity is one HUD data item value: [15].X, [15].Y, [14].X, [14].Y, [13].X, [13].Y.
-        static const float kSpeedLineTierKmh[6] = {40.0f, 70.0f, 110.0f, 165.0f, 235.0f, 320.0f};   // keep in step with TIER_KMH in the generator
-        float sl_master = g_sl_on.load() ? fx_env * g_sl_opacity : 0.0f;
-        float sl_tier[6] = {0, 0, 0, 0, 0, 0};
-        {
-            const float kmh = g_player_speed.load() * 3.6f;
-            float w[6] = {0, 0, 0, 0, 0, 0};
-            if (kmh <= kSpeedLineTierKmh[0]) {
-                w[0] = 1.0f;
-            } else if (kmh >= kSpeedLineTierKmh[5]) {
-                w[5] = 1.0f;
-            } else {
-                for (int i = 0; i < 5; ++i) {
-                    if (kmh <= kSpeedLineTierKmh[i + 1]) {
-                        const float x = logf(kmh / kSpeedLineTierKmh[i]) / logf(kSpeedLineTierKmh[i + 1] / kSpeedLineTierKmh[i]);
-                        w[i] = 1.0f - x;
-                        w[i + 1] = x;
-                        break;
-                    }
-                }
-            }
-            float amp = (g_player_speed.load() - 15.0f) / 45.0f;   // subtler at low speed
-            amp = 0.45f + 0.55f * (amp < 0.0f ? 0.0f : (amp > 1.0f ? 1.0f : amp));
-            sl_master *= amp;
-            for (int i = 0; i < 6; ++i) {
-                const float v = sl_master * w[i];
-                sl_tier[i] = v < 0.004f ? 0.0f : v;
-            }
-        }
-        vignette_alpha = vig_a < 0.004f ? 0.0f : vig_a;
+        float vignette_alpha = 0.0f, sl_tier[6] = {0, 0, 0, 0, 0, 0}, sl_level = 0.0f;
+        compute_fx_levels(active, &vignette_alpha, sl_tier, &sl_level);
 
         // Drive the 4 NOS segments via RPMGaugeNumbers[17..20] and the glowing tip cap on [16].
         void* arr_wrapper = *(void**)((uintptr_t)speedo + 0x150);
@@ -2875,7 +3024,7 @@ static void nitro_worker_thread() {
         // Map or Loading) and the HUD speedometer is ticking (not Garage or a car meet lobby).
         uint64_t now_ms = GetTickCount64();
         bool physics_active = (now_ms - g_last_physics_tick.load()) < 200;
-        bool driving = physics_active && (now_ms - g_last_speedo_tick.load()) < 200;
+        bool driving = physics_active && hud_driving(now_ms);
 
         if (g_refund_on_rewind.load() || g_refill_on_start.load())
             nitro_hud_events(physics_active, (now_ms - g_last_speedo_tick.load()) < 200, now_ms);
@@ -3056,7 +3205,7 @@ static void build_overlay_lines() {
     uint64_t phys_age = now - g_last_physics_tick.load();
     uint64_t speedo_age = now - g_last_speedo_tick.load();
     uint64_t pos_age = now - g_player_pos_tick.load();
-    bool driving = phys_age < 200 && speedo_age < 200;
+    bool driving = phys_age < 200 && hud_driving(now);
     int up = g_up_axis.load();
     int off = g_pos_offset.load();
 
@@ -3072,6 +3221,7 @@ static void build_overlay_lines() {
     }
     overlay_line("NOS kit: required=%d ready=%d stage=%d tank=%.0fs recharge=%.2f/s garage id=%u", g_require_kit.load() ? 1 : 0,
                  g_kit_ready.load() ? 1 : 0, player_kit_level(), nu_tank(player_kit_level()), nu_recharge(player_kit_level()), (unsigned)nu_active_garage);
+    overlay_line("ui bits=0x%x seen_on_screen=%d", g_ui_bits.load(), g_ui_seen_on_screen.load() ? 1 : 0);
     overlay_line("driving=%d  physics age=%llums  speedometer age=%llums", driving ? 1 : 0,
                  (unsigned long long)phys_age, (unsigned long long)speedo_age);
     if (off >= 0) {
@@ -3333,6 +3483,7 @@ FH2MOD_EXPORT int fh2mod_init(const FH2ModApi* api) {
     } else {
         api->log(g_mod, "Require NOS Kit is off: every car has NOS, and the NOS Kit isn't added to the garage.");
     }
+    canvas_setup(api);   // the HUD page is written after every mod's init
     apply_hud_theme();   // before the game first reads the HUD files
     apply_backfire_effect();
     remove_legacy_files();
